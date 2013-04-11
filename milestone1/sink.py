@@ -26,6 +26,7 @@ class Sink:
         # If its a text, just print out the text
         
         # Return the received payload for comparison purposes
+        print len(recd_bits)
         return rcd_payload
 
     def bits2text(self, bits):
