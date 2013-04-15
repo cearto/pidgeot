@@ -24,26 +24,29 @@ class Source:
                     payload = bits_from_image(self, self.fname)
                     # Its an image
                 else:           
-                    payload = text2bits(self, self.fname)
+                    payload = self.text2bits(self.fname)
+                    header = self.get_header(len(payload), SRCTYPE_IMG)
                     # Assume it's text                    
             else:               
                 payload = numpy.ones(self.monotone, dtype=numpy.int)
                 header = self.get_header(len(payload), SRCTYPE_MON)
-                databits = numpy.concatenate([header, payload])
-                print "payload"
-                print payload
-                print "databits"
-                print databits
                 # Send monotone (the payload is all 1s for 
-                # monotone bits)   
+                # monotone bits)
+            databits = numpy.concatenate([header, payload])
+            print "payload"
+            print payload
+            print "databits"
+            print databits
             return payload, databits
             # payload is the binary array of the file, databits is header + payload
 
     def text2bits(self, filename):
-        f = open(filename)
-        print f
         # Given a text file, convert to bits
-        return bits
+        text_str = open(filename).read()
+        text_bin = bin(int(binascii.hexlify(text_str), 16))
+        text_arr = list(text_bin[2:]) # To get rid of the 0b prefix
+        text_bits = numpy.array(map(int, text_arr))
+        return text_bits 
 
     def bits_from_image(self, filename):
         # Given an image, convert to bits
