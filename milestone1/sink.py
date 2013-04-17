@@ -4,6 +4,7 @@ import Image
 from graphs import *
 import binascii
 import random
+import os
 
 SRCTYPE_MON = 0
 SRCTYPE_IMG = 1
@@ -40,11 +41,28 @@ class Sink:
 
     def bits2text(self, bits):
         # Convert the received payload to text (string)
+        #array to binary string
+        text = ''.join(str(e) for e in bits) 
+        #binary to hex
+        text = "%x" % int(text, 2)
+        #hex to ascii
+        text = binascii.unhexlify(text)
+
         return text
 
     def image_from_bits(self, bits,filename):
         # Convert the received payload to an image and save it
         # No return value required .
+        data = ''.join(str(e) for e in img_str)
+        data = "%x" % int(data, 2)
+
+        imgSize = (32, 32)
+        data = binascii.unhexlify(data)
+        print data
+
+        img = Image.fromstring('L', imgSize, data)
+        img.save(filename)
+
         pass 
 
     def read_header(self, header_bits): 
