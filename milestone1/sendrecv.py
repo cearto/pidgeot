@@ -95,10 +95,6 @@ if __name__ == '__main__':
     #instantiate and run the source block
     src = Source(opt.monotone, opt.fname)
     src_payload, databits = src.process()  
-
-    print "databits"
-    print databits
-    print len(databits)
     
     # instantiate and run the transmitter block
     xmitter = Transmitter(fc, opt.samplerate, opt.one, opt.spb, opt.silence)

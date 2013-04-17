@@ -5,6 +5,10 @@ from graphs import *
 import binascii
 import random
 
+SRCTYPE_MON = 0
+SRCTYPE_IMG = 1
+SRCTYPE_TXT = 2
+HEADER_LEN = 34
 
 class Sink:
     def __init__(self):
@@ -26,12 +30,17 @@ class Sink:
         # If its a text, just print out the text
         
         # Return the received payload for comparison purposes
-        
+        [srctype, payload_length] = self.read_header(recd_bits[:HEADER_LEN])
+        rcd_payload = recd_bits[HEADER_LEN + 1:HEADER_LEN + 1 + payload_length]
+        if srctype == SRCTYPE_TXT:
+            print self.bits2text(rcd_payload)
+        elif srctype == SRCTYPE_IMG:
+            self.image_from_bits(rcd_payload, "rcd-image.png")
         return rcd_payload
 
     def bits2text(self, bits):
         # Convert the received payload to text (string)
-        return  text
+        return text
 
     def image_from_bits(self, bits,filename):
         # Convert the received payload to an image and save it
@@ -41,7 +50,21 @@ class Sink:
     def read_header(self, header_bits): 
         # Given the header bits, compute the payload length
         # and source type (compatible with get_header on source)
- 
+        src_str = ''.join(map(str, header_bits[0:1].tolist()))
+        src_int = int(src_str, 2)
+
+        if src_int == 0:
+            srctype = SRCTYPE_MON
+        elif src_int == 1:
+            srctype = SRCTYPE_IMG
+        elif src_int == 2:
+            srctype = SRCTYPE_TXT
+        else: 
+            print "INVALID SRCTYPE"
+
+        payload_str = ''.join(map(str, header_bits[2:34].tolist()))
+        payload_length = int(payload_str, 2)
+
         print '\tRecd header: ', header_bits
         print '\tLength from header: ', payload_length
         print '\tSource type: ', srctype

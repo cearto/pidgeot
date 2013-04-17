@@ -21,11 +21,12 @@ class Source:
             # Form the databits, from the filename 
             if self.fname is not None:
                 if self.fname.endswith('.png') or self.fname.endswith('.PNG'):
-                    payload = bits_from_image(self, self.fname)
+                    payload = self.bits_from_image(self.fname)
+                    header = self.get_header(len(payload), SRCTYPE_IMG)
                     # Its an image
                 else:           
                     payload = self.text2bits(self.fname)
-                    header = self.get_header(len(payload), SRCTYPE_IMG)
+                    header = self.get_header(len(payload), SRCTYPE_TXT)
                     # Assume it's text                    
             else:               
                 payload = numpy.ones(self.monotone, dtype=numpy.int)
@@ -33,16 +34,19 @@ class Source:
                 # Send monotone (the payload is all 1s for 
                 # monotone bits)
             databits = numpy.concatenate([header, payload])
-            print "payload"
-            print payload
+            print "header"
+            print header
             print "databits"
             print databits
+            print len(databits)
             return payload, databits
             # payload is the binary array of the file, databits is header + payload
 
     def text2bits(self, filename):
         # Given a text file, convert to bits
-        text_str = open(filename).read()
+        f = open(filename)
+        text_str = f.read()
+        f.close()
         text_bin = bin(int(binascii.hexlify(text_str), 16))
         text_arr = list(text_bin[2:]) # To get rid of the 0b prefix
         text_bits = numpy.array(map(int, text_arr))
@@ -50,7 +54,13 @@ class Source:
 
     def bits_from_image(self, filename):
         # Given an image, convert to bits
-        return bits
+        img = Image.open(filename).convert('L')
+        img_arr = list(img.getdata())
+        img_str = ''
+        for p in img_arr:
+            img_str += '{0:08b}'.format(p)
+        img_bits = numpy.array(map(int, list(img_str)))
+        return img_bits
 
     def get_header(self, payload_length, srctype):
         # Given the payload length and the type of source 
