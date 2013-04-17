@@ -53,7 +53,7 @@ class Sink:
     def image_from_bits(self, bits,filename):
         # Convert the received payload to an image and save it
         # No return value required .
-        data = ''.join(str(e) for e in img_str)
+        data = ''.join(str(e) for e in bits)
         data = "%x" % int(data, 2)
 
         imgSize = (32, 32)
