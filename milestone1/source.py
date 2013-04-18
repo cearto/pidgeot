@@ -27,18 +27,16 @@ class Source:
                 else:           
                     payload = self.text2bits(self.fname)
                     header = self.get_header(len(payload), SRCTYPE_TXT)
+                    print "Processing text:", self.fname
                     # Assume it's text                    
             else:               
                 payload = numpy.ones(self.monotone, dtype=numpy.int)
                 header = self.get_header(len(payload), SRCTYPE_MON)
                 # Send monotone (the payload is all 1s for 
                 # monotone bits)
+            print 'SENDING ENCODING:', SRCTYPE_TXT, len(payload)
+            print 'DATA: ', payload
             databits = numpy.concatenate([header, payload])
-            print "header"
-            print header
-            print "databits"
-            print databits
-            print len(databits)
             return payload, databits
             # payload is the binary array of the file, databits is header + payload
 
@@ -65,6 +63,7 @@ class Source:
     def get_header(self, payload_length, srctype):
         # Given the payload length and the type of source 
         # (image, text, monotone), form the header
+        
         payload_str = '{0:032b}'.format(payload_length)
         payload_arr = list(payload_str)
         payload_bits = numpy.array(map(int, payload_arr))
