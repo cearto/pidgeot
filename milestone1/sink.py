@@ -61,7 +61,6 @@ class Sink:
 
         imgSize = (32, 32)
         data = binascii.unhexlify(data)
-        print data
 
         img = Image.fromstring('L', imgSize, data)
         img.save(filename)

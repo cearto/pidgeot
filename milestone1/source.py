@@ -30,6 +30,9 @@ class Source:
                 else:           
                     payload = self.text2bits(self.fname)
                     header = self.get_header(len(payload), SRCTYPE_TXT)
+                    print '\tSource type:\ttext'
+                    print '\tPayload length:\t', len(payload)
+                    print '\tHeader:\t', list(header)
                     # Assume it's text                    
             else:        
                 payload = numpy.ones(self.monotone, dtype=numpy.int)
@@ -76,16 +79,5 @@ class Source:
         srctype_bits = numpy.array(map(int, srctype_arr))
 
         header = numpy.concatenate([srctype_bits, payload_bits])
-
-        if srctype == SRCTYPE_MON:
-            srctypep = 'monotone'
-        elif srctype == SRCTYPE_TXT:
-            srctypep = 'text'
-        elif srctype == SRCTYPE_IMG:
-            srctypep = 'image'
-
-        print '\tSource type: ', srctypep
-        print '\tPayload length: ', payload_length
-        print '\tHeader: ', header
 
         return header
