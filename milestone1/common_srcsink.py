@@ -21,5 +21,5 @@ def hamming(s1,s2):
     	if a != b:
     		hamming_d = hamming_d + 1
 
-    ber = hamming_d / len(s1)
+    ber = hamming_d / float(len(s1))
     return hamming_d, ber
