@@ -34,10 +34,8 @@ class Sink:
         [srctype, payload_length] = self.read_header(recd_bits[:HEADER_LEN])
         
         rcd_payload = recd_bits[HEADER_LEN:HEADER_LEN + payload_length]
-        print 'RECEIVED ENCODING:', srctype, payload_length
-        print 'RECEIVED DATA:', rcd_payload
         if srctype == SRCTYPE_TXT:
-            print self.bits2text(rcd_payload)
+            print '\tText recd: ', self.bits2text(rcd_payload)
         elif srctype == SRCTYPE_IMG:
             self.image_from_bits(rcd_payload, "rcd-image.png")
         return rcd_payload
@@ -76,17 +74,21 @@ class Sink:
 
         if src_int == 0:
             srctype = SRCTYPE_MON
+            srctypestr = 'monotone'
         elif src_int == 1:
             srctype = SRCTYPE_IMG
+            srctypestr = 'image'
         elif src_int == 2:
             srctype = SRCTYPE_TXT
+            srctypestr = 'text'
         else: 
             print "INVALID SRCTYPE"
 
         payload_str = ''.join(map(str, header_bits[3:34].tolist()))
         payload_length = int(payload_str, 2)
-        
+
         print '\tRecd header: ', header_bits
+        print '\tSource type: ', srctypestr
         print '\tLength from header: ', payload_length
-        print '\tSource type: ', srctype
+        
         return srctype, payload_length

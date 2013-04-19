@@ -15,7 +15,7 @@ def hamming(s1,s2):
     	s2 = s2[:len(s1)]
 
     hamming_d = 0
-    pairs = zip(s1, s1)
+    pairs = zip(s1, s2)
 
     for a,b in pairs:
     	if a != b:
