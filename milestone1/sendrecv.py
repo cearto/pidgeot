@@ -97,7 +97,6 @@ if __name__ == '__main__':
     src = Source(opt.monotone, opt.fname)
     src_payload, databits = src.process()  
     
-    print 'Sending data:', src_payload, databits, len(src_payload), len(databits)
     # instantiate and run the transmitter block
     xmitter = Transmitter(fc, opt.samplerate, opt.one, opt.spb, opt.silence)
     databits_with_preamble = xmitter.add_preamble(databits)
@@ -131,7 +130,6 @@ if __name__ == '__main__':
 
     # push into sink
     sink = Sink()
-    print "Received: ", rcdbits, len(rcdbits)
 
     rcd_payload = sink.process(rcdbits)
     
