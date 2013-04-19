@@ -23,14 +23,20 @@ class Source:
                 if self.fname.endswith('.png') or self.fname.endswith('.PNG'):
                     payload = self.bits_from_image(self.fname)
                     header = self.get_header(len(payload), SRCTYPE_IMG)
+                    print '\tSource type:\timage'
+                    print '\tPayload length:\t', len(payload)
+                    print '\tHeader:\t', list(header)
                     # Its an image
                 else:           
                     payload = self.text2bits(self.fname)
                     header = self.get_header(len(payload), SRCTYPE_TXT)
                     # Assume it's text                    
-            else:               
+            else:        
                 payload = numpy.ones(self.monotone, dtype=numpy.int)
                 header = self.get_header(len(payload), SRCTYPE_MON)
+                print '\tSource type: monotone'  
+                print '\tPayload length:\t', len(payload)   
+                print '\tHeader:\t', list(header)
                 # Send monotone (the payload is all 1s for 
                 # monotone bits)
             databits = numpy.concatenate([header, payload])
