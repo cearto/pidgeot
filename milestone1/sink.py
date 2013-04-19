@@ -34,10 +34,8 @@ class Sink:
         [srctype, payload_length] = self.read_header(recd_bits[:HEADER_LEN])
         
         rcd_payload = recd_bits[HEADER_LEN:HEADER_LEN + payload_length]
-<<<<<<< HEAD
-=======
         print '\tRecd ', len(recd_bits) - HEADER_LEN, ' data bits:'
->>>>>>> f2ab564531df1d36cf177ce55acd5adf5cfbd686
+
         if srctype == SRCTYPE_TXT:
             print '\tText recd: ', self.bits2text(rcd_payload)
         elif srctype == SRCTYPE_IMG:
