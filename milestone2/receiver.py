@@ -26,6 +26,27 @@ class Receiver:
         No need to touch this.
         ''' 
         return receiver_mil3.detect_threshold(demod_samples)
+
+    def detect_energy_offset(self, demod_samples, thresh, one):
+        demod_samples = numpy.concatenate([numpy.zeros(10), range(0,25)]) # CHANGE THIS
+        windowsize = 5  # CHANGE THIS
+        energy_offset = 0
+
+        for i in range(0, len(demod_samples) - windowsize + 1):
+            window = demod_samples[i:i+windowsize]
+            center = windowsize / 2
+            offset = int(numpy.ceil(windowsize/4.0))
+            if windowsize % 2 == 0: 
+                start = center - offset
+            else: 
+                start = center - offset + 1
+            end = center + offset
+            subwindow = window[start:end]
+            avg = numpy.average(subwindow)
+            if avg > (one + thresh)/2.0:
+                energy_offset = i
+                break
+        return energy_offset
  
     def detect_preamble(self, demod_samples, thresh, one):
         '''
@@ -39,7 +60,7 @@ class Receiver:
         '''
         # Fill in your implementation of the high-energy check procedure
 
-        energy_offset = 0# fill in the result of the high-energy check
+        energy_offset = self.detect_energy_offset(demod_samples, thresh, one) # fill in the result of the high-energy check
         if energy_offset < 0:
             print '*** ERROR: Could not detect any ones (so no preamble). ***'
             print '\tIncrease volume / turn on mic?'
