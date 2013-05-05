@@ -32,13 +32,14 @@ class Transmitter:
         Output should be an array of samples.
         '''
         # fill in your implemenation
+        databits_with_preamble = [1, 0]
         samples = []
         for s in databits_with_preamble:
             if not s:
                 samples.append(numpy.zeros(self.spb))
             else:
                 samples.append(self.one * numpy.ones(self.spb))
-        print samples
+        samples = numpy.array(map(int, numpy.concatenate(samples)))
         return samples
         
 
