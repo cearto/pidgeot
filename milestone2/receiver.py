@@ -39,7 +39,7 @@ class Receiver:
         '''
         # Fill in your implementation of the high-energy check procedure
 
-        energy_offset = # fill in the result of the high-energy check
+        energy_offset = 0# fill in the result of the high-energy check
         if energy_offset < 0:
             print '*** ERROR: Could not detect any ones (so no preamble). ***'
             print '\tIncrease volume / turn on mic?'
@@ -53,7 +53,7 @@ class Receiver:
         '''
         # Fill in your implementation of the cross-correlation check procedure
         
-        preamble_offset = # fill in the result of the cross-correlation check 
+        preamble_offset = 0# fill in the result of the cross-correlation check 
         
         '''
         [preamble_offset] is the additional amount of offset starting from [offset],

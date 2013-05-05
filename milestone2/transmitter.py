@@ -19,6 +19,10 @@ class Transmitter:
             [silence bits], [preamble bits], and [databits]
         '''
         # fill in your implementation
+        silencebits = numpy.zeros(self.silence)
+        preamblebits = [1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1]
+        databits_with_preamble = numpy.array(map(int, numpy.concatenate([silencebits, preamblebits, databits])))
+        print databits_with_preamble
         return databits_with_preamble
 
 
