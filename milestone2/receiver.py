@@ -145,10 +145,10 @@ class Receiver:
             else:
                 zeros.append(self.avg_middle_bits(bit))
 
-        print "1", ones, min(ones)
-        print "0", zeros, max(zeros)
+        #print "1", ones, min(ones)
+        #print "0", zeros, max(zeros)
         threshold = numpy.mean([numpy.mean(ones), numpy.mean(zeros)])
-        print threshold 
+        #print threshold 
         
         preamble_trans = []
         for i in avgs:
@@ -156,12 +156,22 @@ class Receiver:
                 preamble_trans.append(1)
             else:
                 preamble_trans.append(0)
-        print preamble_trans
-        print self.preamblebits
+        #print preamble_trans
+        #print self.preamblebits
 
+        r_databits = demod_samples[preamble_start + preamble_n * self.spb : -1]
+        r_databits_trans = []
         # Fill in your implementation
+        for i in xrange(0, len(r_databits), self.spb):
 
-        return data_bits # without preamble
-
+            bit = preamble_test[i : i + self.spb]
+            avg = self.avg_middle_bits(bit)
+            if avg > threshold:
+                r_databits_trans.append(1)
+            else:
+                r_databits_trans.append(0)
+        print r_databits_trans
+        return r_databits_trans
+        
     def demodulate(self, samples):
         return common.demodulate(self.fc, self.samplerate, samples)

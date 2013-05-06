@@ -70,6 +70,7 @@ class Sink:
     def read_header(self, header_bits): 
         # Given the header bits, compute the payload length
         # and source type (compatible with get_header on source)
+        print "HEADERBITS", header_bits
         src_str = ''.join(map(str, header_bits[0:2].tolist()))
         src_int = int(src_str, 2)
 
