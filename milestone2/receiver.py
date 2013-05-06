@@ -43,10 +43,9 @@ class Receiver:
         No need to touch this.
         ''' 
         return receiver_mil3.detect_threshold(demod_samples)
-    def are_middle_bits_one(self, bits)
+    def avg_middle_bits(self, bits):
         n = len(bits)
-        bits = demod_samples[i: i + n]
-        center = windowsize / 2
+        center = n / 2
         offset = int(numpy.ceil(n / 4.0))
         if n % 2 == 0: 
             start = center - offset
@@ -55,10 +54,8 @@ class Receiver:
         end = center + offset
         middle_bits = bits[start:end]
         avg = numpy.average(middle_bits)
-
-        if avg > (one + thresh)/2.0:
-            return 1
-        return 0
+        
+        return avg
 
     def detect_energy_offset(self, demod_samples, thresh, one):
         windowsize = self.spb
@@ -66,7 +63,7 @@ class Receiver:
 
         for i in range(0, len(demod_samples) - windowsize + 1):
             window = demod_samples[i: i + windowsize]
-            if are_middle_bits_one(window):
+            if self.avg_middle_bits(window) > (one + thresh)/2.0:
                 energy_offset = i
                 break
         return energy_offset
@@ -132,13 +129,36 @@ class Receiver:
            the preamble. If it is proceed, if not terminate the program. 
         Output is the array of data_bits (bits without preamble)
         '''
-        preamble_n = len(self.preamblebits) * self.spb
-        preamble_test = demod_samples[preamble_start : preamble_n]
+        preamble_n = len(self.preamblebits)
+        preamble_test = demod_samples[preamble_start : preamble_start + preamble_n * self.spb]
+        ones = []
+        zeros = []
+        avgs = []
+        for i in range(0, preamble_n):
+
+            bit = preamble_test[i * self.spb : i * self.spb + self.spb]
+            #print "BIT", i, len(preamble_test), bit, len(bit), self.avg_middle_bits(bit)
+            avg = self.avg_middle_bits(bit)
+            avgs.append(avg)
+            if self.preamblebits[i]:
+                ones.append(self.avg_middle_bits(bit))
+            else:
+                zeros.append(self.avg_middle_bits(bit))
+
+        print "1", ones, min(ones)
+        print "0", zeros, max(zeros)
+        threshold = numpy.mean([numpy.mean(ones), numpy.mean(zeros)])
+        print threshold 
+        
         preamble_trans = []
-        for i in xrange(0, preamble_n, self.spb):
-            bit = preamble_test[i : i + self.spb]
-            print "BIT", len(bit), are_middle_bits_one(bit)
-            preamble_trans = are_middle_bits_one(bit)
+        for i in avgs:
+            if i > threshold:
+                preamble_trans.append(1)
+            else:
+                preamble_trans.append(0)
+        print preamble_trans
+        print self.preamblebits
+
         # Fill in your implementation
 
         return data_bits # without preamble
