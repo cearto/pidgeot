@@ -43,23 +43,30 @@ class Receiver:
         No need to touch this.
         ''' 
         return receiver_mil3.detect_threshold(demod_samples)
+    def are_middle_bits_one(self, bits)
+        n = len(bits)
+        bits = demod_samples[i: i + n]
+        center = windowsize / 2
+        offset = int(numpy.ceil(n / 4.0))
+        if n % 2 == 0: 
+            start = center - offset
+        else: 
+            start = center - offset + 1
+        end = center + offset
+        middle_bits = bits[start:end]
+        avg = numpy.average(middle_bits)
+
+        if avg > (one + thresh)/2.0:
+            return 1
+        return 0
 
     def detect_energy_offset(self, demod_samples, thresh, one):
         windowsize = self.spb
         energy_offset = 0
 
         for i in range(0, len(demod_samples) - windowsize + 1):
-            window = demod_samples[i:i+windowsize]
-            center = windowsize / 2
-            offset = int(numpy.ceil(windowsize/4.0))
-            if windowsize % 2 == 0: 
-                start = center - offset
-            else: 
-                start = center - offset + 1
-            end = center + offset
-            subwindow = window[start:end]
-            avg = numpy.average(subwindow)
-            if avg > (one + thresh)/2.0:
+            window = demod_samples[i: i + windowsize]
+            if are_middle_bits_one(window):
                 energy_offset = i
                 break
         return energy_offset
@@ -125,7 +132,13 @@ class Receiver:
            the preamble. If it is proceed, if not terminate the program. 
         Output is the array of data_bits (bits without preamble)
         '''
-
+        preamble_n = len(self.preamblebits) * self.spb
+        preamble_test = demod_samples[preamble_start : preamble_n]
+        preamble_trans = []
+        for i in xrange(0, preamble_n, self.spb):
+            bit = preamble_test[i : i + self.spb]
+            print "BIT", len(bit), are_middle_bits_one(bit)
+            preamble_trans = are_middle_bits_one(bit)
         # Fill in your implementation
 
         return data_bits # without preamble
