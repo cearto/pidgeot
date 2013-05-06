@@ -18,7 +18,24 @@ class Receiver:
         self.fc = carrier_freq
         self.samplerate = samplerate
         self.spb = spb 
+        self.preamblebits = [1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1]
         print 'Receiver: '
+
+    def bits_to_samples(self, databits_with_preamble):
+        '''
+        Convert each bits into [spb] samples. 
+        Sample values for bit '1', '0' should be [one], 0 respectively.
+        Output should be an array of samples.
+        '''
+        # fill in your implemenation
+        samples = []
+        for s in databits_with_preamble:
+            if not s:
+                samples.append(numpy.zeros(self.spb))
+            else:
+                samples.append(numpy.ones(self.spb)) # no self.one because it doesn't matter what you scale by
+        samples = numpy.array(map(int, numpy.concatenate(samples)))
+        return samples
 
     def detect_threshold(self, demod_samples):
         '''
@@ -28,8 +45,7 @@ class Receiver:
         return receiver_mil3.detect_threshold(demod_samples)
 
     def detect_energy_offset(self, demod_samples, thresh, one):
-        demod_samples = numpy.concatenate([numpy.zeros(10), range(0,25)]) # CHANGE THIS
-        windowsize = 5  # CHANGE THIS
+        windowsize = self.spb
         energy_offset = 0
 
         for i in range(0, len(demod_samples) - windowsize + 1):
@@ -47,7 +63,20 @@ class Receiver:
                 energy_offset = i
                 break
         return energy_offset
- 
+
+    def detect_preamble_offset(self, demod_samples, energy_offset):
+        preamble_samples = self.bits_to_samples(self.preamblebits)
+        preamble_length = len(self.preamblebits) * self.spb
+        endrange = min(len(demod_samples) - energy_offset - preamble_length + 1, energy_offset + 3 * preamble_length)
+        cross_r = []
+        
+        for i in range(energy_offset, endrange):
+            window = demod_samples[i: i + preamble_length]
+            cross_r.append(numpy.dot(preamble_samples, window))
+
+        value = max(cross_r)
+        return cross_r.index(value)
+
     def detect_preamble(self, demod_samples, thresh, one):
         '''
         Find the sample corresp. to the first reliable bit "1"; this step 
@@ -74,7 +103,7 @@ class Receiver:
         '''
         # Fill in your implementation of the cross-correlation check procedure
         
-        preamble_offset = 0# fill in the result of the cross-correlation check 
+        preamble_offset = self.detect_preamble_offset(demod_samples, energy_offset)# fill in the result of the cross-correlation check 
         
         '''
         [preamble_offset] is the additional amount of offset starting from [offset],
