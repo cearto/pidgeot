@@ -71,7 +71,7 @@ class Sink:
         # Given the header bits, compute the payload length
         # and source type (compatible with get_header on source)
         print "HEADERBITS", header_bits
-        src_str = ''.join(map(str, header_bits[0:2].tolist()))
+        src_str = ''.join(map(str, header_bits[0:2]))
         src_int = int(src_str, 2)
 
         if src_int == SRCTYPE_MON:
@@ -86,7 +86,7 @@ class Sink:
         else: 
             print "INVALID SRCTYPE"
 
-        payload_str = ''.join(map(str, header_bits[3:34].tolist()))
+        payload_str = ''.join(map(str, header_bits[3:34]))
         payload_length = int(payload_str, 2)
 
         print '\tRecd header: ', header_bits

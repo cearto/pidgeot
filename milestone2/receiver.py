@@ -129,27 +129,21 @@ class Receiver:
            the preamble. If it is proceed, if not terminate the program. 
         Output is the array of data_bits (bits without preamble)
         '''
-        preamble_n = len(self.preamblebits)
-        preamble_test = demod_samples[preamble_start : preamble_start + preamble_n * self.spb]
+        npreamblebits = len(self.preamblebits) # number of bits in the preamble
+        preamble_candidates = demod_samples[preamble_start : preamble_start + npreamblebits * self.spb]
         ones = []
         zeros = []
         avgs = []
-        for i in range(0, preamble_n):
-
-            bit = preamble_test[i * self.spb : i * self.spb + self.spb]
-            #print "BIT", i, len(preamble_test), bit, len(bit), self.avg_middle_bits(bit)
+        for i in range(0, npreamblebits):
+            bit = preamble_candidates[i * self.spb : i * self.spb + self.spb] # all the samples in this bit
             avg = self.avg_middle_bits(bit)
             avgs.append(avg)
-            if self.preamblebits[i]:
+            if self.preamblebits[i]: # assign the sample to a zero or one bit
                 ones.append(self.avg_middle_bits(bit))
             else:
                 zeros.append(self.avg_middle_bits(bit))
+        threshold = numpy.mean([numpy.mean(ones), numpy.mean(zeros)]) # calculate new threshold
 
-        #print "1", ones, min(ones)
-        #print "0", zeros, max(zeros)
-        threshold = numpy.mean([numpy.mean(ones), numpy.mean(zeros)])
-        #print threshold 
-        
         preamble_trans = []
         for i in avgs:
             if i > threshold:
@@ -159,19 +153,18 @@ class Receiver:
         #print preamble_trans
         #print self.preamblebits
 
-        r_databits = demod_samples[preamble_start + preamble_n * self.spb : -1]
-        r_databits_trans = []
+        recv_data_samples = demod_samples[preamble_start + npreamblebits * self.spb : -1]
+        recv_data_bits = []
         # Fill in your implementation
-        for i in xrange(0, len(r_databits), self.spb):
-
-            bit = preamble_test[i : i + self.spb]
+        for i in xrange(0, len(recv_data_samples), self.spb):
+            bit = recv_data_samples[i : i + self.spb]
             avg = self.avg_middle_bits(bit)
             if avg > threshold:
-                r_databits_trans.append(1)
+                recv_data_bits.append(1)
             else:
-                r_databits_trans.append(0)
-        print r_databits_trans
-        return r_databits_trans
+                recv_data_bits.append(0)
+        print recv_data_bits
+        return recv_data_bits
         
     def demodulate(self, samples):
         return common.demodulate(self.fc, self.samplerate, samples)
