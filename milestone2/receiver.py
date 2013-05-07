@@ -150,6 +150,8 @@ class Receiver:
                 preamble_trans.append(1)
             else:
                 preamble_trans.append(0)
+        if preamble_trans != self.preamblebits:
+            print "Preamble not detected."
         #print preamble_trans
         #print self.preamblebits
 
@@ -163,7 +165,7 @@ class Receiver:
                 recv_data_bits.append(1)
             else:
                 recv_data_bits.append(0)
-        print recv_data_bits
+        #print recv_data_bits
         return recv_data_bits
         
     def demodulate(self, samples):
