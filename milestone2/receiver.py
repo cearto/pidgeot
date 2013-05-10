@@ -76,7 +76,8 @@ class Receiver:
         
         for i in range(energy_offset, endrange):
             window = demod_samples[i: i + preamble_length]
-            cross_r.append(numpy.dot(preamble_samples, window))
+            denom = numpy.linalg.norm(demod_samples[i: i + preamble_length])
+            cross_r.append(numpy.dot(preamble_samples, window)/denom)
 
         value = max(cross_r)
         return cross_r.index(value)
@@ -152,6 +153,7 @@ class Receiver:
                 preamble_trans.append(0)
         if preamble_trans != self.preamblebits:
             print "Preamble not detected."
+            sys.exit(1)
         #print preamble_trans
         #print self.preamblebits
 
