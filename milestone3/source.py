@@ -4,6 +4,7 @@ import Image
 from graphs import *
 import binascii
 import random
+import heapq # for huffman tree
 
 SRCTYPE_MON = 0
 SRCTYPE_IMG = 1
@@ -21,30 +22,66 @@ class Source:
             # Form the databits, from the filename 
             if self.fname is not None:
                 if self.fname.endswith('.png') or self.fname.endswith('.PNG'):
-                    payload = self.bits_from_image(self.fname)
-                    header = self.get_header(len(payload), SRCTYPE_IMG)
+                    sourcebits = self.bits_from_image(self.fname)
+                    databits = self.huffman_encode(sourcebits)
+                    header = self.get_header(len(sourcebits), SRCTYPE_IMG)
                     print '\tSource type:\timage'
-                    print '\tPayload length:\t', len(payload)
+                    print '\tPayload length:\t', len(sourcebits)
                     print '\tHeader:\t', list(header)
-                    # Its an image
+                    # It's an image
                 else:           
-                    payload = self.text2bits(self.fname)
-                    header = self.get_header(len(payload), SRCTYPE_TXT)
+                    sourcebits = self.text2bits(self.fname)
+                    databits = self.huffman_encode(sourcebits)
+                    header = self.get_header(len(sourcebits), SRCTYPE_TXT)
                     print '\tSource type:\ttext'
-                    print '\tPayload length:\t', len(payload)
+                    print '\tPayload length:\t', len(sourcebits)
                     print '\tHeader:\t', list(header)
                     # Assume it's text                    
             else:        
-                payload = numpy.ones(self.monotone, dtype=numpy.int)
-                header = self.get_header(len(payload), SRCTYPE_MON)
+                sourcebits = numpy.ones(self.monotone, dtype=numpy.int)
+                databits = self.huffman_encode(sourcebits)
+                header = self.get_header(len(sourcebits), SRCTYPE_MON)
                 print '\tSource type: monotone'  
-                print '\tPayload length:\t', len(payload)   
+                print '\tPayload length:\t', len(sourcebits)   
                 print '\tHeader:\t', list(header)
                 # Send monotone (the payload is all 1s for 
                 # monotone bits)
-            databits = numpy.concatenate([header, payload])
-            return payload, databits
+            databits = numpy.concatenate([header, databits])
+            return sourcebits, databits
             # payload is the binary array of the file, databits is header + payload
+
+    def get_stats(self, data):
+        symbolsize = 4 
+
+        # freq is a map of symbols to frequencies in this data
+        freq = dict()
+        for i in xrange(0,len(data),symbolsize):
+            key = numpy.array_str(data[i:i+symbolsize])
+            key = key.replace('[', '')
+            key = key.replace(']', '')
+            key = key.replace(' ', '')
+            if key not in freq:
+                freq[key] = 0
+            else:
+                freq[key] = freq[key] + 1
+
+        # stats is an array of [freq, symbol] tuples to allow for heapify
+        stats = []
+        for key in freq:
+            tp = [freq[key], key]
+            stats.append(tp)
+        return stats
+
+    # This method borrows code from: http://en.literateprograms.org/Huffman_coding_(Python)
+    def huffman_encode(self, sourcebits):
+        stats = self.get_stats(sourcebits)
+        htree = heapq.heapify(stats)
+        while len(htree) > 1:
+            left, right = heapq.heappop(htree), heapq.heappop(htree)
+            parent = (left[0] + right[0], left, right)
+            heapq.heappush(htree, parent)
+        print htree
+
 
     def text2bits(self, filename):
         # Given a text file, convert to bits
