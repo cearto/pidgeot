@@ -8,8 +8,8 @@ class Transmitter:
         self.samplerate = samplerate
         self.one = one
         self.spb = spb
-        self.silence = silence
-        self.preamblebits = [1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1]
+        self.silence = silence        
+        self.preamblebits = [1,1,1,1,1,0,1,1,1,1,0,0,1,1,1,0,1,0,1,1,0,0,0,0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,0,0,0,0,0]
         print 'Transmitter: '
     def add_preamble(self, databits):
         '''

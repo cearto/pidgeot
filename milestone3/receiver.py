@@ -18,7 +18,7 @@ class Receiver:
         self.fc = carrier_freq
         self.samplerate = samplerate
         self.spb = spb 
-        self.preamblebits = [1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1]
+        self.preamblebits = [1,1,1,1,1,0,1,1,1,1,0,0,1,1,1,0,1,0,1,1,0,0,0,0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,0,0,0,0,0]
         print 'Receiver: '
 
     def bits_to_samples(self, databits_with_preamble):
@@ -151,9 +151,7 @@ class Receiver:
                 preamble_trans.append(1)
             else:
                 preamble_trans.append(0)
-        if preamble_trans != self.preamblebits:
-            print "Preamble not detected."
-            sys.exit(1)
+                
         #print preamble_trans
         #print self.preamblebits
 
