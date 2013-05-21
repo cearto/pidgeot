@@ -16,6 +16,7 @@ class Source:
         # The initialization procedure of source object
         self.monotone = monotone
         self.fname = filename
+        self.symbolsize = 4
         print 'Source: '
 
     def process(self):
@@ -50,38 +51,56 @@ class Source:
             return sourcebits, databits
             # payload is the binary array of the file, databits is header + payload
 
-    def get_stats(self, data):
-        symbolsize = 4 
+    def key_from_arr(self, arr):
+        key = numpy.array_str(arr)
+        key = key.replace('[', '')
+        key = key.replace(']', '')
+        key = key.replace(' ', '')
+        return key
 
+    def get_stats(self, data):
         # freq is a map of symbols to frequencies in this data
         freq = dict()
-        for i in xrange(0,len(data),symbolsize):
-            key = numpy.array_str(data[i:i+symbolsize])
-            key = key.replace('[', '')
-            key = key.replace(']', '')
-            key = key.replace(' ', '')
+        for i in xrange(0, len(data), self.symbolsize):
+            key = self.key_from_arr(data[i:i+self.symbolsize])
             if key not in freq:
-                freq[key] = 0
+                freq[key] = 1
             else:
                 freq[key] = freq[key] + 1
 
         # stats is an array of [freq, symbol] tuples to allow for heapify
         stats = []
         for key in freq:
-            tp = [freq[key], key]
+            tp = (freq[key], key)
             stats.append(tp)
         return stats
 
-    # This method borrows code from: http://en.literateprograms.org/Huffman_coding_(Python)
+    # This method takes code from: http://en.literateprograms.org/Huffman_coding_(Python)
+    def map_huffman_tree(self, htree, mapping, prefix = ''):
+        if len(htree) == 2:
+            mapping[htree[1]] = prefix
+        else:
+            self.map_huffman_tree(htree[1], mapping, prefix + '0')
+            self.map_huffman_tree(htree[2], mapping, prefix + '1')
+
+    # This method takes code from: http://en.literateprograms.org/Huffman_coding_(Python)
     def huffman_encode(self, sourcebits):
         stats = self.get_stats(sourcebits)
         htree = heapq.heapify(stats)
-        while len(htree) > 1:
-            left, right = heapq.heappop(htree), heapq.heappop(htree)
+        while len(stats) > 1: # build the huffman tree
+            left, right = heapq.heappop(stats), heapq.heappop(stats)
             parent = (left[0] + right[0], left, right)
-            heapq.heappush(htree, parent)
-        print htree
+            heapq.heappush(stats, parent)
+        htree = stats[0]
+        mapping = dict() 
+        self.map_huffman_tree(htree, mapping) # creates the lookup table
 
+        huffman_bits_str = ''
+        for i in xrange(0, len(sourcebits), self.symbolsize): # build the huffman-encoded bits
+            key = self.key_from_arr(sourcebits[i:i+self.symbolsize])
+            huffman_bits_str = huffman_bits_str + mapping[key]
+
+        print huffman_bits_str
 
     def text2bits(self, filename):
         # Given a text file, convert to bits
