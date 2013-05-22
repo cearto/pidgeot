@@ -5,6 +5,7 @@ from graphs import *
 import binascii
 import random
 import os
+import heapq # for huffman tree
 
 
 class Sink:
@@ -30,8 +31,9 @@ class Sink:
         [srctype, payload_length] = self.read_type_size(recd_bits[:HEADER_GEN_LEN])
         if srctype != SRCTYPE_MON:
             stats = self.read_stat(recd_bits[HEADER_GEN_LEN:HEADER_GEN_LEN + HEADER_STATS_LEN])
-
-        rcd_payload = recd_bits[HEADER_LEN:HEADER_LEN + payload_length]
+            rcd_payload = self.huffman_decode(stats, recd_bits[HEADER_GEN_LEN + HEADER_STATS_LEN:HEADER_GEN_LEN + HEADER_STATS_LEN + payload_length])
+        else:
+            rcd_payload = recd_bits[HEADER_LEN:HEADER_LEN + payload_length]
         print '\tRecd ', len(recd_bits) - HEADER_LEN, ' data bits:'
 
         if srctype == SRCTYPE_TXT:
@@ -39,6 +41,22 @@ class Sink:
         elif srctype == SRCTYPE_IMG:
             self.image_from_bits(rcd_payload, "rcd-image.png")
         return rcd_payload
+
+    def huffman_decode(self, stats, bits):
+        print "len of undecoded bits", len(bits)
+        mapping = huffman_reverse_lookup_table(stats)
+        print "huffman_decode lookup table", mapping
+        decoded_str = ''
+        i = 0
+        while i < len(bits):
+            key = str(bits[i])
+            i = i + 1
+            while key not in mapping:
+                key = key + str(bits[i])
+                i = i + 1
+            decoded_str = decoded_str + mapping[key]
+        print decoded_str, len(decoded_str), len(decoded_str)/SYMBOLSIZE
+        return bits
 
     def bits2text(self, bits):
         # Convert the received payload to text (string)
@@ -73,8 +91,9 @@ class Sink:
             freq_bits = ext_header[i:i+STATSIZE]
             freq_str = key_from_arr(numpy.array(freq_bits))
             freq = int(freq_str, 2)
-            tp = (freq, klist[i/STATSIZE])
-            stats.append(tp)
+            if freq > 0:
+                tp = (freq, klist[i/STATSIZE])
+                stats.append(tp)
         print stats
         return stats
 

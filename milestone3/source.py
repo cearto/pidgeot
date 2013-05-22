@@ -4,7 +4,6 @@ import Image
 from graphs import *
 import binascii
 import random
-import heapq # for huffman tree
 
 
 class Source:
@@ -75,26 +74,13 @@ class Source:
         return freq, stats
 
     # This method takes code from: http://en.literateprograms.org/Huffman_coding_(Python)
-    def map_huffman_tree(self, htree, mapping, prefix = ''):
-        if len(htree) == 2:
-            mapping[htree[1]] = prefix
-        else:
-            self.map_huffman_tree(htree[1], mapping, prefix + '0')
-            self.map_huffman_tree(htree[2], mapping, prefix + '1')
-
-    # This method takes code from: http://en.literateprograms.org/Huffman_coding_(Python)
     # Returns map of frequencies for each symbol, as well as huffman-encoded bits
     def huffman_encode(self, sourcebits):
+        print "huffman_encode sourcebits", key_from_arr(sourcebits)
+
         freq, stats = self.get_stats(sourcebits)
-        print stats
-        htree = heapq.heapify(stats)
-        while len(stats) > 1: # build the huffman tree
-            left, right = heapq.heappop(stats), heapq.heappop(stats)
-            parent = (left[0] + right[0], left, right)
-            heapq.heappush(stats, parent)
-        htree = stats[0]
-        mapping = dict() 
-        self.map_huffman_tree(htree, mapping) # creates the lookup table
+        mapping = huffman_lookup_table(stats)
+        print "huffman_encode lookup table", mapping
 
         huffman_bits_str = ''
         for i in xrange(0, len(sourcebits), SYMBOLSIZE): # build the huffman-encoded bits
