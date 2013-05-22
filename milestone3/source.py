@@ -28,7 +28,7 @@ class Source:
                     header = self.get_header(SRCTYPE_IMG, len(databits), stats)
                     print '\tSource type:\timage'
                     print '\tPayload length:\t', len(databits)
-                    print '\tHeader:\t', list(header)
+                    print '\tHeader:\t', header
                     # It's an image
                 else:           
                     sourcebits = self.text2bits(self.fname)
@@ -36,7 +36,7 @@ class Source:
                     header = self.get_header(SRCTYPE_TXT, len(databits), stats)
                     print '\tSource type:\ttext'
                     print '\tPayload length:\t', len(databits)
-                    print '\tHeader:\t', list(header)
+                    print '\tHeader:\t', header
                     # Assume it's text                    
             else:        
                 sourcebits = numpy.ones(self.monotone, dtype=numpy.int)
@@ -44,18 +44,21 @@ class Source:
                 header = self.get_header(SRCTYPE_MON, len(databits), stats)
                 print '\tSource type: monotone'  
                 print '\tPayload length:\t', len(databits)   
-                print '\tHeader:\t', list(header)
+                print '\tHeader:\t', header
                 # Send monotone (the payload is all 1s for 
                 # monotone bits)
-            databits = numpy.concatenate([header, databits])
+            databits = header + databits
             return sourcebits, databits
-            # payload is the binary array of the file, databits is header + payload
+            # sourcebits is the un-encoded array of bits of the file
+            # databits is the header + encoded payload
 
     def key_from_arr(self, arr):
         key = numpy.array_str(arr)
         key = key.replace('[', '')
         key = key.replace(']', '')
-        key = key.replace(' ', '')
+        key = key.replace(' ', '')            
+        while len(key) < self.symbolsize:
+            key = key + '0'
         return key
 
     def get_stats(self, data):
@@ -133,23 +136,18 @@ class Source:
         
         srctype_str = '{0:02b}'.format(srctype)
         srctype_arr = list(srctype_str)
-        srctype_bits = numpy.array(map(int, srctype_arr))
+        srctype_bits = [int(b) for b in list(srctype_str)]
 
         payload_str = '{0:032b}'.format(payload_length)
         payload_arr = list(payload_str)
-        payload_bits = numpy.array(map(int, payload_arr))
-
-        # ATTENTION: NEED TO DEAL WITH PADDING!!!
-        print stats
+        payload_bits = [int(b) for b in list(payload_str)]
 
         stats_bits = []
         for key in stats:
             key_bits = [int(b) for b in list(key)]
             freq_str ='{0:010b}'.format(stats[key])
             freq_bits = [int(b) for b in list(freq_str)]
-            print key_bits
-            print freq_bits
+            stats_bits = stats_bits + key_bits + freq_bits
 
-        header = numpy.concatenate([srctype_bits, payload_bits])
-
+        header = srctype_bits + payload_bits + stats_bits
         return header
