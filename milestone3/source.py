@@ -1,14 +1,11 @@
 # audiocom library: Source and sink functions
-import common_srcsink as common
+from common_srcsink import *
 import Image
 from graphs import *
 import binascii
 import random
 import heapq # for huffman tree
 
-SRCTYPE_MON = 0
-SRCTYPE_IMG = 1
-SRCTYPE_TXT = 2
 
 class Source:
 
@@ -16,7 +13,6 @@ class Source:
         # The initialization procedure of source object
         self.monotone = monotone
         self.fname = filename
-        self.symbolsize = 4
         print 'Source: '
 
     def process(self):
@@ -40,8 +36,8 @@ class Source:
                     # Assume it's text                    
             else:        
                 sourcebits = numpy.ones(self.monotone, dtype=numpy.int)
-                databits = sourcebits
-                header = self.get_header(SRCTYPE_MON, len(databits), stats)
+                databits = list(sourcebits)
+                header = self.get_header(SRCTYPE_MON, len(databits), None)
                 print '\tSource type: monotone'  
                 print '\tPayload length:\t', len(databits)   
                 print '\tHeader:\t', header
@@ -57,15 +53,15 @@ class Source:
         key = key.replace('[', '')
         key = key.replace(']', '')
         key = key.replace(' ', '')            
-        while len(key) < self.symbolsize:
+        while len(key) < SYMBOLSIZE:
             key = key + '0'
         return key
 
     def get_stats(self, data):
         # freq is a map of symbols to frequencies in this data
         freq = dict()
-        for i in xrange(0, len(data), self.symbolsize):
-            key = self.key_from_arr(data[i:i+self.symbolsize])
+        for i in xrange(0, len(data), SYMBOLSIZE):
+            key = key_from_arr(data[i:i+SYMBOLSIZE])
             if key not in freq:
                 freq[key] = 1
             else:
@@ -90,6 +86,7 @@ class Source:
     # Returns map of frequencies for each symbol, as well as huffman-encoded bits
     def huffman_encode(self, sourcebits):
         freq, stats = self.get_stats(sourcebits)
+        print stats
         htree = heapq.heapify(stats)
         while len(stats) > 1: # build the huffman tree
             left, right = heapq.heappop(stats), heapq.heappop(stats)
@@ -100,8 +97,8 @@ class Source:
         self.map_huffman_tree(htree, mapping) # creates the lookup table
 
         huffman_bits_str = ''
-        for i in xrange(0, len(sourcebits), self.symbolsize): # build the huffman-encoded bits
-            key = self.key_from_arr(sourcebits[i:i+self.symbolsize])
+        for i in xrange(0, len(sourcebits), SYMBOLSIZE): # build the huffman-encoded bits
+            key = key_from_arr(sourcebits[i:i+SYMBOLSIZE])
             huffman_bits_str = huffman_bits_str + mapping[key]
 
         huffman_bits = list(huffman_bits_str)
@@ -138,7 +135,7 @@ class Source:
         srctype_arr = list(srctype_str)
         srctype_bits = [int(b) for b in list(srctype_str)]
 
-        payload_str = '{0:032b}'.format(payload_length)
+        payload_str = '{0:016b}'.format(payload_length)
         payload_arr = list(payload_str)
         payload_bits = [int(b) for b in list(payload_str)]
 
@@ -146,11 +143,15 @@ class Source:
             header = srctype_bits + payload_bits
         else:
             stats_bits = []
-            for key in stats:
-                key_bits = [int(b) for b in list(key)]
-                freq_str ='{0:010b}'.format(stats[key])
+            klist = []
+            generate_keys(klist)
+            for key in klist:
+                if key in stats:
+                    freq_str ='{0:010b}'.format(stats[key])
+                else:
+                    freq_str ='{0:010b}'.format(0)
                 freq_bits = [int(b) for b in list(freq_str)]
-                stats_bits = stats_bits + key_bits + freq_bits
+                stats_bits = stats_bits + freq_bits
             header = srctype_bits + payload_bits + stats_bits
-            
+
         return header

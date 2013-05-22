@@ -1,18 +1,14 @@
 # audiocom library: Source and sink functions
-import common_srcsink
+from common_srcsink import *
 import Image
 from graphs import *
 import binascii
 import random
 import os
 
-SRCTYPE_MON = 0
-SRCTYPE_IMG = 1
-SRCTYPE_TXT = 2
-HEADER_LEN = 34
 
 class Sink:
-    def __init__(self):
+    def __init__(self): 
         # no initialization required for sink 
         print 'Sink:'
 
@@ -31,8 +27,10 @@ class Sink:
         # If its a text, just print out the text
         
         # Return the received payload for comparison purposes
-        [srctype, payload_length] = self.read_header(recd_bits[:HEADER_LEN])
-        
+        [srctype, payload_length] = self.read_type_size(recd_bits[:HEADER_GEN_LEN])
+        if srctype != SRCTYPE_MON:
+            stats = self.read_stat(recd_bits[HEADER_GEN_LEN:HEADER_GEN_LEN + HEADER_STATS_LEN])
+
         rcd_payload = recd_bits[HEADER_LEN:HEADER_LEN + payload_length]
         print '\tRecd ', len(recd_bits) - HEADER_LEN, ' data bits:'
 
@@ -67,7 +65,20 @@ class Sink:
 
         pass 
 
-    def read_header(self, header_bits): 
+    def read_stat(self, ext_header):
+        stats = []
+        klist = []
+        generate_keys(klist)
+        for i in xrange(0, len(ext_header), STATSIZE):
+            freq_bits = ext_header[i:i+STATSIZE]
+            freq_str = key_from_arr(numpy.array(freq_bits))
+            freq = int(freq_str, 2)
+            tp = (freq, klist[i/STATSIZE])
+            stats.append(tp)
+        print stats
+        return stats
+
+    def read_type_size(self, header_bits): 
         # Given the header bits, compute the payload length
         # and source type (compatible with get_header on source)
         src_str = ''.join(map(str, header_bits[0:2]))
