@@ -24,7 +24,7 @@ class Source:
             if self.fname is not None:
                 if self.fname.endswith('.png') or self.fname.endswith('.PNG'):
                     sourcebits = self.bits_from_image(self.fname)
-                    databits = self.huffman_encode(sourcebits)
+                    stats, databits = self.huffman_encode(sourcebits)
                     header = self.get_header(len(sourcebits), SRCTYPE_IMG)
                     print '\tSource type:\timage'
                     print '\tPayload length:\t', len(sourcebits)
@@ -32,7 +32,7 @@ class Source:
                     # It's an image
                 else:           
                     sourcebits = self.text2bits(self.fname)
-                    databits = self.huffman_encode(sourcebits)
+                    stats, databits = self.huffman_encode(sourcebits)
                     header = self.get_header(len(sourcebits), SRCTYPE_TXT)
                     print '\tSource type:\ttext'
                     print '\tPayload length:\t', len(sourcebits)
@@ -40,7 +40,7 @@ class Source:
                     # Assume it's text                    
             else:        
                 sourcebits = numpy.ones(self.monotone, dtype=numpy.int)
-                databits = self.huffman_encode(sourcebits)
+                stats, databits = self.huffman_encode(sourcebits)
                 header = self.get_header(len(sourcebits), SRCTYPE_MON)
                 print '\tSource type: monotone'  
                 print '\tPayload length:\t', len(sourcebits)   
@@ -73,7 +73,7 @@ class Source:
         for key in freq:
             tp = (freq[key], key)
             stats.append(tp)
-        return stats
+        return freq, stats
 
     # This method takes code from: http://en.literateprograms.org/Huffman_coding_(Python)
     def map_huffman_tree(self, htree, mapping, prefix = ''):
@@ -84,8 +84,9 @@ class Source:
             self.map_huffman_tree(htree[2], mapping, prefix + '1')
 
     # This method takes code from: http://en.literateprograms.org/Huffman_coding_(Python)
+    # Returns map of frequencies for each symbol, as well as huffman-encoded bits
     def huffman_encode(self, sourcebits):
-        stats = self.get_stats(sourcebits)
+        freq, stats = self.get_stats(sourcebits)
         htree = heapq.heapify(stats)
         while len(stats) > 1: # build the huffman tree
             left, right = heapq.heappop(stats), heapq.heappop(stats)
@@ -100,7 +101,11 @@ class Source:
             key = self.key_from_arr(sourcebits[i:i+self.symbolsize])
             huffman_bits_str = huffman_bits_str + mapping[key]
 
-        print huffman_bits_str
+        huffman_bits = list(huffman_bits_str)
+        huffman_bits = [int(b) for b in huffman_bits]
+
+        # Return frequency map and huffman-encoded bits
+        return freq, huffman_bits
 
     def text2bits(self, filename):
         # Given a text file, convert to bits
