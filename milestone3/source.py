@@ -40,7 +40,7 @@ class Source:
                     # Assume it's text                    
             else:        
                 sourcebits = numpy.ones(self.monotone, dtype=numpy.int)
-                stats, databits = self.huffman_encode(sourcebits)
+                databits = sourcebits
                 header = self.get_header(SRCTYPE_MON, len(databits), stats)
                 print '\tSource type: monotone'  
                 print '\tPayload length:\t', len(databits)   
@@ -142,12 +142,15 @@ class Source:
         payload_arr = list(payload_str)
         payload_bits = [int(b) for b in list(payload_str)]
 
-        stats_bits = []
-        for key in stats:
-            key_bits = [int(b) for b in list(key)]
-            freq_str ='{0:010b}'.format(stats[key])
-            freq_bits = [int(b) for b in list(freq_str)]
-            stats_bits = stats_bits + key_bits + freq_bits
-
-        header = srctype_bits + payload_bits + stats_bits
+        if srctype == SRCTYPE_MON:
+            header = srctype_bits + payload_bits
+        else:
+            stats_bits = []
+            for key in stats:
+                key_bits = [int(b) for b in list(key)]
+                freq_str ='{0:010b}'.format(stats[key])
+                freq_bits = [int(b) for b in list(freq_str)]
+                stats_bits = stats_bits + key_bits + freq_bits
+            header = srctype_bits + payload_bits + stats_bits
+            
         return header
