@@ -25,25 +25,25 @@ class Source:
                 if self.fname.endswith('.png') or self.fname.endswith('.PNG'):
                     sourcebits = self.bits_from_image(self.fname)
                     stats, databits = self.huffman_encode(sourcebits)
-                    header = self.get_header(len(sourcebits), SRCTYPE_IMG)
+                    header = self.get_header(SRCTYPE_IMG, len(databits), stats)
                     print '\tSource type:\timage'
-                    print '\tPayload length:\t', len(sourcebits)
+                    print '\tPayload length:\t', len(databits)
                     print '\tHeader:\t', list(header)
                     # It's an image
                 else:           
                     sourcebits = self.text2bits(self.fname)
                     stats, databits = self.huffman_encode(sourcebits)
-                    header = self.get_header(len(sourcebits), SRCTYPE_TXT)
+                    header = self.get_header(SRCTYPE_TXT, len(databits), stats)
                     print '\tSource type:\ttext'
-                    print '\tPayload length:\t', len(sourcebits)
+                    print '\tPayload length:\t', len(databits)
                     print '\tHeader:\t', list(header)
                     # Assume it's text                    
             else:        
                 sourcebits = numpy.ones(self.monotone, dtype=numpy.int)
                 stats, databits = self.huffman_encode(sourcebits)
-                header = self.get_header(len(sourcebits), SRCTYPE_MON)
+                header = self.get_header(SRCTYPE_MON, len(databits), stats)
                 print '\tSource type: monotone'  
-                print '\tPayload length:\t', len(sourcebits)   
+                print '\tPayload length:\t', len(databits)   
                 print '\tHeader:\t', list(header)
                 # Send monotone (the payload is all 1s for 
                 # monotone bits)
@@ -127,17 +127,28 @@ class Source:
         img_bits = numpy.array(map(int, list(img_str)))
         return img_bits
 
-    def get_header(self, payload_length, srctype):
+    def get_header(self, srctype, payload_length, stats):
         # Given the payload length and the type of source 
         # (image, text, monotone), form the header
         
+        srctype_str = '{0:02b}'.format(srctype)
+        srctype_arr = list(srctype_str)
+        srctype_bits = numpy.array(map(int, srctype_arr))
+
         payload_str = '{0:032b}'.format(payload_length)
         payload_arr = list(payload_str)
         payload_bits = numpy.array(map(int, payload_arr))
 
-        srctype_str = '{0:02b}'.format(srctype)
-        srctype_arr = list(srctype_str)
-        srctype_bits = numpy.array(map(int, srctype_arr))
+        # ATTENTION: NEED TO DEAL WITH PADDING!!!
+        print stats
+
+        stats_bits = []
+        for key in stats:
+            key_bits = [int(b) for b in list(key)]
+            freq_str ='{0:010b}'.format(stats[key])
+            freq_bits = [int(b) for b in list(freq_str)]
+            print key_bits
+            print freq_bits
 
         header = numpy.concatenate([srctype_bits, payload_bits])
 
