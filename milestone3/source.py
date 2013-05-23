@@ -19,24 +19,26 @@ class Source:
             if self.fname is not None:
                 if self.fname.endswith('.png') or self.fname.endswith('.PNG'):
                     sourcebits = self.bits_from_image(self.fname)
-                    stats, databits = self.huffman_encode(sourcebits)
-                    header = self.get_header(SRCTYPE_IMG, len(databits), stats)
+                    stats, databits, paddingbits = self.huffman_encode(sourcebits)
+                    header = self.get_header(SRCTYPE_IMG, len(databits), stats, paddingbits)
                     print '\tSource type:\timage'
                     print '\tPayload length:\t', len(databits)
+                    print '\tPadding:\t', int(''.join(map(str, paddingbits)), 2)
                     print '\tHeader:\t', header
                     # It's an image
                 else:           
                     sourcebits = self.text2bits(self.fname)
-                    stats, databits = self.huffman_encode(sourcebits)
-                    header = self.get_header(SRCTYPE_TXT, len(databits), stats)
+                    stats, databits, paddingbits = self.huffman_encode(sourcebits)
+                    header = self.get_header(SRCTYPE_TXT, len(databits), stats, paddingbits)
                     print '\tSource type:\ttext'
                     print '\tPayload length:\t', len(databits)
+                    print '\tPadding:\t', int(''.join(map(str, paddingbits)), 2)
                     print '\tHeader:\t', header
                     # Assume it's text                    
             else:        
                 sourcebits = numpy.ones(self.monotone, dtype=numpy.int)
                 databits = list(sourcebits)
-                header = self.get_header(SRCTYPE_MON, len(databits), None)
+                header = self.get_header(SRCTYPE_MON, len(databits), None, None)
                 print '\tSource type: monotone'  
                 print '\tPayload length:\t', len(databits)   
                 print '\tHeader:\t', header
@@ -46,15 +48,6 @@ class Source:
             return sourcebits, databits
             # sourcebits is the un-encoded array of bits of the file
             # databits is the header + encoded payload
-
-    def key_from_arr(self, arr):
-        key = numpy.array_str(arr)
-        key = key.replace('[', '')
-        key = key.replace(']', '')
-        key = key.replace(' ', '')            
-        while len(key) < SYMBOLSIZE:
-            key = key + '0'
-        return key
 
     def get_stats(self, data):
         # freq is a map of symbols to frequencies in this data
@@ -76,8 +69,11 @@ class Source:
     # This method takes code from: http://en.literateprograms.org/Huffman_coding_(Python)
     # Returns map of frequencies for each symbol, as well as huffman-encoded bits
     def huffman_encode(self, sourcebits):
-        print "huffman_encode sourcebits", key_from_arr(sourcebits)
+        padding = (SYMBOLSIZE - len(sourcebits) % SYMBOLSIZE) % SYMBOLSIZE
+        padding_bits = list('{0:02b}'.format(padding))
+        padding_bits = [int(b) for b in padding_bits]
 
+        print "huffman_encode sourcebits, len", str_from_arr(sourcebits), len(sourcebits)
         freq, stats = self.get_stats(sourcebits)
         mapping = huffman_lookup_table(stats)
         print "huffman_encode lookup table", mapping
@@ -89,9 +85,8 @@ class Source:
 
         huffman_bits = list(huffman_bits_str)
         huffman_bits = [int(b) for b in huffman_bits]
-
         # Return frequency map and huffman-encoded bits
-        return freq, huffman_bits
+        return freq, huffman_bits, padding_bits
 
     def text2bits(self, filename):
         # Given a text file, convert to bits
@@ -113,7 +108,7 @@ class Source:
         img_bits = numpy.array(map(int, list(img_str)))
         return img_bits
 
-    def get_header(self, srctype, payload_length, stats):
+    def get_header(self, srctype, payload_length, stats, padding_bits):
         # Given the payload length and the type of source 
         # (image, text, monotone), form the header
         
@@ -138,6 +133,6 @@ class Source:
                     freq_str ='{0:010b}'.format(0)
                 freq_bits = [int(b) for b in list(freq_str)]
                 stats_bits = stats_bits + freq_bits
-            header = srctype_bits + payload_bits + stats_bits
+            header = srctype_bits + payload_bits + padding_bits + stats_bits
 
         return header

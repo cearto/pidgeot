@@ -8,8 +8,9 @@ STATSIZE = 10
 SRCTYPE_MON = 0
 SRCTYPE_IMG = 1
 SRCTYPE_TXT = 2
-HEADER_GEN_LEN = 18
+HEADER_GEN_LEN = 20
 HEADER_STATS_LEN = 160
+PADDING_BITS = 2
 
 # Methods common to both the transmitter and receiver.
 def hamming(s1,s2):
@@ -70,6 +71,13 @@ def generate_keys(klist,key='',size=SYMBOLSIZE):
     else:
         generate_keys(klist, key+'0')
         generate_keys(klist, key+'1')
+
+def str_from_arr(arr):
+    s = numpy.array_str(arr)
+    s = s.replace('[', '')
+    s = s.replace(']', '')
+    s = s.replace(' ', '')        
+    return s
 
 def key_from_arr(arr):
     key = numpy.array_str(arr)
