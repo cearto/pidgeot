@@ -43,7 +43,8 @@ class Transmitter:
             encodingval = self.cc_len
         n, k, index, G = gen_lookup(encodingval)
 
-        print n, k, index, G
+        print n, k, index
+        print G
 
         while len(databits) % k != 0:
             databits.append(0)
@@ -54,6 +55,7 @@ class Transmitter:
             if (k == 1):
                 c = d[0] * G
             else:
+                print d, G
                 c = numpy.dot(d, G)
             coded_bits = coded_bits + list(c)
 
