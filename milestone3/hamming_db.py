@@ -50,6 +50,16 @@ generating_matrices = [numpy.array([1, 1, 1]),
 
 parameters = [[3,1],[7,4],[15,11],[31,26]]
 
+def rearrange_list(L, k, n):
+    R = []
+    for i in range(k):
+        start = i * n
+        row = L[start:start + n]
+        sectionA = row[:n - k]
+        sectionI = row[n - k:]
+        row = list(sectionI) + list(sectionA)
+        R = R + row
+    return R
 
 def gen_lookup(cc_len):
     ''' 
@@ -77,7 +87,8 @@ def gen_lookup(cc_len):
     
     # Reshape G:
     G = generating_matrices[index]
-
+    G = rearrange_list(G, k, n)
+    G = numpy.reshape(G, (k, n))
     return n, k, index, G
 
 def parity_lookup(index):
