@@ -76,6 +76,7 @@ def gen_lookup(cc_len):
     k = parameters[index][1]
     
     # Reshape G:
+    G = generating_matrices[index]
 
     return n, k, index, G
 

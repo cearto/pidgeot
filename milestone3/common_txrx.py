@@ -22,3 +22,10 @@ If you need any functions that
 you need commonly in both transmitter and receiver,
 implement here
 '''
+
+def int_to_bits (i, length):
+	bits = list('{0:02b}'.format(i))
+	bits = [int(b) for b in bits]
+	while len(bits) < length:
+		bits.insert(0, 0)
+	return bits
