@@ -30,19 +30,44 @@ class Receiver:
         headerbits = rcd_bits[:self.cheaderlen]
         decoded_header = self.hamming_decoding(headerbits, self.hindex)
         coded_length = bits_to_int(decoded_header[:16])
-        index = bits_to_int(decoded_header[16:])
+        encoding_index = bits_to_int(decoded_header[16:])
 
-        encoding_index = 3 # IMPLEMENT
+
+        n = parameters[encoding_index][0]
+        k = parameters[encoding_index][1]
+        print "channel coding rate: ", float(k)/n
 
         databits = rcd_bits[self.cheaderlen:]
-        decoded_data = hamming_decoding(databits, encoding_index)
+        decoded_data = self.hamming_decoding(databits, encoding_index)
 
         return decoded_data
 
+    def error_index(self, p):
+        for i in range(len(p)):
+            if p[i] != 0:
+                return i
+        return -1
+
     def hamming_decoding(self, coded_bits, index):
         n, k, H = parity_lookup(index)
+        decoded_bits = []
+        errorcount = 0
+        for cwi in range(len(coded_bits) / n):
+            cw = coded_bits[cwi * n : cwi * n + n]
+            d = cw[:k]
 
+            p = numpy.dot(H, cw)
+            p = [b % 2 for b in list(p)]
 
+            error = self.error_index(p)
+            if error != -1 and error < k:
+                errorcount = errorcount + 1
+                d[error] = (d[error] + 1) % 2
+
+            decoded_bits = decoded_bits + d
+
+        print "errors corrected: ", errorcount
+        print "decoded_bits: ", decoded_bits
         return decoded_bits
 
     def bits_to_samples(self, databits_with_preamble):

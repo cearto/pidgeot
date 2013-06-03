@@ -104,7 +104,6 @@ def parity_lookup(index):
     The decoder reads the header to pick the right parity check matrix.
     ''' 
 
-    index = 1
     G = generating_matrices[index]
     n = parameters[index][0]
     k = parameters[index][1]
@@ -115,14 +114,14 @@ def parity_lookup(index):
     for r in range(n - k):
         row = []
         for c in range(k):
-            val = G[c * n]
+            val = G[c * n + r]
             row.append(val)
         Irow = I[r]
         for c in range(k, n):
             val = Irow[c - k]
             row.append(val)
         H.append(row)
-    print H
+    print "H: ", H
     H = numpy.reshape(H, (n - k, n))
 
     return n, k, H
