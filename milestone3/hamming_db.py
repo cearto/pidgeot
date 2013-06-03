@@ -121,7 +121,6 @@ def parity_lookup(index):
             val = Irow[c - k]
             row.append(val)
         H.append(row)
-    print "H: ", H
     H = numpy.reshape(H, (n - k, n))
 
     return n, k, H

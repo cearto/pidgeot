@@ -44,9 +44,9 @@ class Sink:
         return rcd_payload
 
     def huffman_decode(self, stats, bits, padding):
-        print "len of undecoded bits", len(bits)
+        # print "len of undecoded bits", len(bits)
         mapping = huffman_reverse_lookup_table(stats)
-        print "huffman_decode lookup table", mapping
+        # print "huffman_decode lookup table", mapping
         decoded_str = ''
         i = 0
         while i < len(bits):
@@ -57,7 +57,7 @@ class Sink:
                 i = i + 1
             decoded_str = decoded_str + mapping[key]
         decoded_str = decoded_str[:len(decoded_str) - padding]
-        print "huffman_decode bits, len", decoded_str, len(decoded_str)
+        # print "huffman_decode bits, len", decoded_str, len(decoded_str)
         decoded_bits = list(decoded_str)
         decoded_bits = [int(b) for b in decoded_bits]
         return decoded_bits

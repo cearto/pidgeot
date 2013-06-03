@@ -23,6 +23,10 @@ class Transmitter:
         # Encode the databits
         index, coded_databits = self.hamming_encoding(databits, False)
 
+        n = parameters[index][0]
+        k = parameters[index][1]
+        print "\tChannel coding rate:\t", float(k)/n
+
         # Compute length of the coded header + coded databits for use in the outer header
         coded_length = self.cheaderlen + len(coded_databits)
         
@@ -43,24 +47,18 @@ class Transmitter:
             encodingval = self.cc_len
         n, k, index, G = gen_lookup(encodingval)
 
-        #print n, k, index
-        #print G
-
         while len(databits) % k != 0:
             databits.append(0)
 
         coded_bits = []
         for i in range(len(databits) / k):
-            d = databits[i:i + k]
+            d = databits[i * k : i * k + k]
             if (k == 1):
                 c = d[0] * G[0] # Have to index into G or else you get an extra nesting
             else:
                 c = numpy.dot(d, G)
             c = [b % 2 for b in list(c)]
             coded_bits = coded_bits + c
-
-        print "databits ", databits # REMOVE
-        print "codedbits ", coded_bits # REMOVE
 
         return index, coded_bits
 

@@ -22,7 +22,9 @@ class Source:
                     stats, databits, paddingbits = self.huffman_encode(sourcebits)
                     header = self.get_header(SRCTYPE_IMG, len(databits), stats, paddingbits)
                     print '\tSource type:\timage'
-                    print '\tPayload length:\t', len(databits)
+                    print '\tPayload length:\t', len(sourcebits)
+                    print '\tCompressed payload length:\t', len(databits)
+                    print '\tCompresion rate:\t', float(len(databits))/len(sourcebits)
                     print '\tPadding:\t', int(''.join(map(str, paddingbits)), 2)
                     print '\tHeader:\t', header
                     # It's an image
@@ -31,7 +33,9 @@ class Source:
                     stats, databits, paddingbits = self.huffman_encode(sourcebits)
                     header = self.get_header(SRCTYPE_TXT, len(databits), stats, paddingbits)
                     print '\tSource type:\ttext'
-                    print '\tPayload length:\t', len(databits)
+                    print '\tPayload length:\t', len(sourcebits)
+                    print '\tCompressed payload length:\t', len(databits)
+                    print '\tCompresion rate:\t', float(len(databits))/len(sourcebits)
                     print '\tPadding:\t', int(''.join(map(str, paddingbits)), 2)
                     print '\tHeader:\t', header
                     # Assume it's text                    
@@ -40,7 +44,9 @@ class Source:
                 databits = list(sourcebits)
                 header = self.get_header(SRCTYPE_MON, len(databits), None, None)
                 print '\tSource type: monotone'  
-                print '\tPayload length:\t', len(databits)   
+                print '\tPayload length:\t', len(sourcebits)   
+                print '\tCompressed payload length:\t', len(databits)
+                print '\tCompresion rate:\t', float(len(databits))/len(sourcebits)
                 print '\tHeader:\t', header
                 # Send monotone (the payload is all 1s for 
                 # monotone bits)
@@ -73,10 +79,10 @@ class Source:
         padding_bits = list('{0:02b}'.format(padding))
         padding_bits = [int(b) for b in padding_bits]
 
-        print "huffman_encode sourcebits, len", str_from_arr(sourcebits), len(sourcebits)
+        # print "huffman_encode sourcebits, len", str_from_arr(sourcebits), len(sourcebits)
         freq, stats = self.get_stats(sourcebits)
         mapping = huffman_lookup_table(stats)
-        print "huffman_encode lookup table", mapping
+        # print "huffman_encode lookup table", mapping
 
         huffman_bits_str = ''
         for i in xrange(0, len(sourcebits), SYMBOLSIZE): # build the huffman-encoded bits

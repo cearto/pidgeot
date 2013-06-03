@@ -28,17 +28,17 @@ class Receiver:
 
     def decode(self, rcd_bits):
         headerbits = rcd_bits[:self.cheaderlen]
-        decoded_header = self.hamming_decoding(headerbits, self.hindex)
+        decoded_header, ec = self.hamming_decoding(headerbits, self.hindex)
+
+        errorcount = ec
+
         coded_length = bits_to_int(decoded_header[:16])
         encoding_index = bits_to_int(decoded_header[16:])
 
-
-        n = parameters[encoding_index][0]
-        k = parameters[encoding_index][1]
-        print "channel coding rate: ", float(k)/n
-
         databits = rcd_bits[self.cheaderlen:]
-        decoded_data = self.hamming_decoding(databits, encoding_index)
+        decoded_data, ec = self.hamming_decoding(databits, encoding_index)
+        errorcount = errorcount + ec
+        print "\tErrors corrected:\t", errorcount
 
         return decoded_data
 
@@ -66,9 +66,7 @@ class Receiver:
 
             decoded_bits = decoded_bits + d
 
-        print "errors corrected: ", errorcount
-        print "decoded_bits: ", decoded_bits
-        return decoded_bits
+        return decoded_bits, errorcount
 
     def bits_to_samples(self, databits_with_preamble):
         '''
