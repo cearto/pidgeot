@@ -103,11 +103,27 @@ def parity_lookup(index):
     is, because containing index is efficient than containing n in the header.
     The decoder reads the header to pick the right parity check matrix.
     ''' 
+
+    index = 1
     G = generating_matrices[index]
     n = parameters[index][0]
     k = parameters[index][1]
     
     # Reshape G, extract A and compute H:
+    H = []
+    I = numpy.identity(n - k, int)
+    for r in range(n - k):
+        row = []
+        for c in range(k):
+            val = G[c * n]
+            row.append(val)
+        Irow = I[r]
+        for c in range(k, n):
+            val = Irow[c - k]
+            row.append(val)
+        H.append(row)
+    print H
+    H = numpy.reshape(H, (n - k, n))
 
     return n, k, H
 

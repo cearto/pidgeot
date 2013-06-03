@@ -5,6 +5,8 @@ import scipy.cluster.vq
 import common_txrx as common
 from numpy import linalg as LA
 import receiver_mil3
+from common_txrx import *
+from hamming_db import *
 
 class Receiver:
     def __init__(self, carrier_freq, samplerate, spb):
@@ -19,7 +21,29 @@ class Receiver:
         self.samplerate = samplerate
         self.spb = spb 
         self.preamblebits = [1,1,1,1,1,0,1,1,1,1,0,0,1,1,1,0,1,0,1,1,0,0,0,0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,0,0,0,0,0]
+        
+        self.hindex = 0
+        self.cheaderlen = 18 * 3 # 16-bit coded length + 2-bit index value
         print 'Receiver: '
+
+    def decode(self, rcd_bits):
+        headerbits = rcd_bits[:self.cheaderlen]
+        decoded_header = self.hamming_decoding(headerbits, self.hindex)
+        coded_length = bits_to_int(decoded_header[:16])
+        index = bits_to_int(decoded_header[16:])
+
+        encoding_index = 3 # IMPLEMENT
+
+        databits = rcd_bits[self.cheaderlen:]
+        decoded_data = hamming_decoding(databits, encoding_index)
+
+        return decoded_data
+
+    def hamming_decoding(self, coded_bits, index):
+        n, k, H = parity_lookup(index)
+
+
+        return decoded_bits
 
     def bits_to_samples(self, databits_with_preamble):
         '''

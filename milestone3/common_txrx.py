@@ -29,3 +29,11 @@ def int_to_bits (i, length):
 	while len(bits) < length:
 		bits.insert(0, 0)
 	return bits
+
+def bits_to_int (bits):
+	val = 0
+	for i in range(len(bits)):
+		if bits[i] == 1:
+			addval = 2 ** (len(bits) - 1 - i)
+			val = val + addval
+	return val
