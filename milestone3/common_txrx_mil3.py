@@ -23,7 +23,13 @@ def demodulate(fc, samplerate, samples):
   A demodulator that performs quadrature demodulation
   '''
   fs = samplerate
+  omega_c = 2 * m.pi * fc / fs
+  w = []
 
+  for n in range(0, len(samples)):
+    w.append(samples[n] * m.e^(1j * omega_c * n))
+
+  lpfilter(w, omega_c / 2.0)
   return 0
 
 def lpfilter(samples_in, omega_cut):
@@ -32,7 +38,16 @@ def lpfilter(samples_in, omega_cut):
   '''
   # set the filter unit sample response
   L = 50
+  h = []
+  for n in range(-L , L)
+    if n == 0:
+      h.append(omega_cut / pi)
+    else:
+      h.append( m.sin(omega_cut * n) / m.pi / n
   
   # compute the demodulated samples
-  return 0
+  demod_samples = []
+  for n in range(0, len(samples_in))
+    demod_samples[n] = samples_in[n] * m.e(1j * omega_cut * n) * h[n]
+  return demod_samples
 
