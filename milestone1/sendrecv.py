@@ -126,7 +126,8 @@ if __name__ == '__main__':
     demod_samples = r.demodulate(samples_rx)
 
     one, zero, thresh = r.detect_threshold(demod_samples)
-    print "DEMOD", [n > thresh for n in demod_samples]
+    print "THRESH", thresh
+    #print "DEMOD", [n > thresh for n in demod_samples]
     barker_start = r.detect_preamble(demod_samples, thresh, one)
     rcdbits = r.demap_and_check(demod_samples, barker_start)
 

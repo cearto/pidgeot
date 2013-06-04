@@ -58,12 +58,12 @@ def lpfilter(samples_in, omega_cut):
     hu = len(h) if n + L <= len(samples_in) - 1 else len(h) + ((len(samples_in) - 1) -  (n + L + 1)) 
     sum = 0
     if not (hl == 0 and hu == 101):
-      print sl, su, len(samples_in[sl: su])
-      print hl, hu, len(h[hl:hu])
+    #  print sl, su, len(samples_in[sl: su])
+    # print hl, hu, len(h[hl:hu])
     
     s_in = samples_in[sl:su]
     h_in = h[hl:hu]
-    print len(s_in), len(h_in)
+    #print len(s_in), len(h_in)
     for i in range(0, len(h_in)):
       sum += s_in[i] * h_in[i]
     dmod.append(sum)
