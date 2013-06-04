@@ -13,8 +13,9 @@ def modulate(fc, samplerate, samples):
   fs = samplerate
 
   #carrier = cos(2 * math.pi * fc / fs * n)
+  omega_c = 2 * m.pi * fc / fs
   for n in range(0, len(samples)):
-    y.append(samples[n] * m.cos(2 * m.pi * fc / fs * n)) ^ 2
+    y.append(samples[n] * m.cos(omega_c * n))
   return y
 
 def demodulate(fc, samplerate, samples):
