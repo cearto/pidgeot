@@ -59,6 +59,8 @@ if __name__ == '__main__':
                            default=1000, help="lowest carrier frequency (Hz)")
         parser.add_option("-q", "--silence", type="int", dest="silence",
                           default=80, help="#samples of silence at start of preamble")
+        parser.add_option("-H", "--cclen", type="int", dest="cc_len",
+                          default=3, help="length of channel coding")
 
         # Modulation (signaling) and Demodulation options
         parser.add_option("-o", "--one", type="float", dest="one",
@@ -98,7 +100,7 @@ if __name__ == '__main__':
     src_payload, databits = src.process()  
     
     # instantiate and run the transmitter block
-    xmitter = Transmitter(fc, opt.samplerate, opt.one, opt.spb, opt.silence)
+    xmitter = Transmitter(fc, opt.samplerate, opt.one, opt.spb, opt.silence, opt.cc_len)
     databits_with_preamble = xmitter.add_preamble(databits)
     samples = xmitter.bits_to_samples(databits_with_preamble)
     mod_samples = xmitter.modulate(samples)
@@ -123,7 +125,7 @@ if __name__ == '__main__':
     # process the received samples
     # make receiver
     r = Receiver(fc, opt.samplerate, opt.spb)
-    demod_samples = r.demodulate(samples_rx)
+    demod_samples = r.demodulate(mod_samples)
     one, zero, thresh = r.detect_threshold(demod_samples)
     barker_start = r.detect_preamble(demod_samples, thresh, one)
     rcdbits = r.demap_and_check(demod_samples, barker_start)
