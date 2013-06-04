@@ -42,11 +42,23 @@ class Receiver:
 
         return decoded_data
 
-    def error_index(self, p):
-        for i in range(len(p)):
-            if p[i] != 0:
+    def vectors_equal(self, v1, v2):
+        if len(v1) != len(v2):
+            return False
+        for i in range(len(v1)):
+            if v1[i] != v2[i]:
+                return False
+        return True
+
+    def error_index(self, k, H, p):
+        H = H.transpose()
+        z = numpy.zeros(len(p), int)
+        if self.vectors_equal(z, p):
+            return -1
+        for i in range(k):
+            if self.vectors_equal(list(H[i]), p):
                 return i
-        return -1
+        return k # > single bit error
 
     def hamming_decoding(self, coded_bits, index):
         n, k, H = parity_lookup(index)
@@ -59,7 +71,7 @@ class Receiver:
             p = numpy.dot(H, cw)
             p = [b % 2 for b in list(p)]
 
-            error = self.error_index(p)
+            error = self.error_index(k, H, p)
             if error != -1 and error < k:
                 errorcount = errorcount + 1
                 d[error] = (d[error] + 1) % 2
