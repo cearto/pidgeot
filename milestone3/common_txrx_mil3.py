@@ -14,13 +14,14 @@ def modulate(fc, samplerate, samples):
 
   #carrier = cos(2 * math.pi * fc / fs * n)
   for n in range(0, len(samples)):
-    y.append(samples[n] * m.cos(2 * m.pi * fc / fs * n))
+    y.append(samples[n] * m.cos(2 * m.pi * fc / fs * n)) ^ 2
   return y
 
 def demodulate(fc, samplerate, samples):
   '''
   A demodulator that performs quadrature demodulation
   '''
+  fs = samplerate
 
   return 0
 
