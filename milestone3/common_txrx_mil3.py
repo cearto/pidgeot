@@ -10,7 +10,7 @@ def modulate(fc, samplerate, samples):
   '''
   print "MODULATE", fc, samplerate, len(samples)
   y = []
-  fs = 1.0 / samplerate
+  fs = samplerate
 
   #carrier = cos(2 * math.pi * fc / fs * n)
   for n in range(0, len(samples)):
@@ -21,7 +21,7 @@ def demodulate(fc, samplerate, samples):
   '''
   A demodulator that performs quadrature demodulation
   '''
-  
+
   return 0
 
 def lpfilter(samples_in, omega_cut):
