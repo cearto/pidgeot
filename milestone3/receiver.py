@@ -58,6 +58,7 @@ class Receiver:
         for i in range(k):
             if self.vectors_equal(list(H[i]), p):
                 return i
+        print "> single bit error"
         return k # > single bit error
 
     def hamming_decoding(self, coded_bits, index):
