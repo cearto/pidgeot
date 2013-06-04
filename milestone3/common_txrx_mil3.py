@@ -27,10 +27,12 @@ def demodulate(fc, samplerate, samples):
   w = []
 
   for n in range(0, len(samples)):
-    w.append(samples[n] * m.e^(1j * omega_c * n))
+    w.append(samples[n] * numpy.power(m.e, 1j * omega_c * n))
 
-  lpfilter(w, omega_c / 2.0)
-  return 0
+  demod_samples = lpfilter(w, omega_c / 2.0)
+
+
+  return [numpy.linalg.norm(n) for n in demod_samples]
 
 def lpfilter(samples_in, omega_cut):
   '''
@@ -39,15 +41,33 @@ def lpfilter(samples_in, omega_cut):
   # set the filter unit sample response
   L = 50
   h = []
-  for n in range(-L , L)
+  dmod = []
+
+  for n in range(-L, L + 1):
     if n == 0:
-      h.append(omega_cut / pi)
+      h.append(omega_cut / m.pi)
     else:
-      h.append( m.sin(omega_cut * n) / m.pi / n
+      h.append( m.sin(omega_cut * n) / (m.pi / n))
+   
+
+  #Demodulating samples
+  for n in range(0, len(samples_in)):
+    sl = 0 if n - L < 0 else n - L
+    su = len(samples_in) - 1 if n + L > len(samples_in) - 1 else n + L + 1
+    hl = 0 if n - L >= 0 else - (n - L)
+    hu = len(h) if n + L <= len(samples_in) - 1 else len(h) + ((len(samples_in) - 1) -  (n + L + 1)) 
+    sum = 0
+    if not (hl == 0 and hu == 101):
+      print sl, su, len(samples_in[sl: su])
+      print hl, hu, len(h[hl:hu])
+    
+    s_in = samples_in[sl:su]
+    h_in = h[hl:hu]
+    print len(s_in), len(h_in)
+    for i in range(0, len(h_in)):
+      sum += s_in[i] * h_in[i]
+    dmod.append(sum)
+
+  return dmod
   
-  # compute the demodulated samples
-  demod_samples = []
-  for n in range(0, len(samples_in))
-    demod_samples[n] = samples_in[n] * m.e(1j * omega_cut * n) * h[n]
-  return demod_samples
 

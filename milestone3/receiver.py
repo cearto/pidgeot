@@ -133,7 +133,6 @@ class Receiver:
         preamble_length = len(self.preamblebits) * self.spb
         endrange = min(len(demod_samples) - energy_offset - preamble_length + 1, energy_offset + 3 * preamble_length)
         cross_r = []
-        
         for i in range(energy_offset, endrange):
             window = demod_samples[i: i + preamble_length]
             denom = numpy.linalg.norm(demod_samples[i: i + preamble_length])

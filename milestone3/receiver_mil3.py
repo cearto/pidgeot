@@ -17,11 +17,12 @@ def detect_threshold(demod_samples):
 
 	# initialization
   centers = [min(demod_samples), max(demod_samples)]
-  new_centers = [centers[0] + 1, centers[1]] #different to start k-means
-
+  new_centers = centers #different to start k-means
+  start = True
   # 2-means clustering   
   
-  while new_centers != centers:
+  while new_centers != centers or start:
+    start = False
     centers = new_centers
     # Assign each sample to its closest center
     Ck = [[], []]
@@ -29,11 +30,10 @@ def detect_threshold(demod_samples):
     for s in demod_samples:
       diff = []
       for c in centers:
-        diff.append(abs(s - c)^2)
+        diff.append(numpy.power(numpy.abs(s - c), 2))
       k = numpy.argmin(diff)
       Ck[k].append(n)
       n += 1
-
     # Recompute centers
     center_index = 0
 
@@ -45,9 +45,6 @@ def detect_threshold(demod_samples):
       
       new_centers[center_index] = sum
       center_index += 1
-     
-
-  
  
   # associate the higher of the two centers 
   # with one and the lower with zero
@@ -61,6 +58,9 @@ def detect_threshold(demod_samples):
   print one
   print " Threshold for 0:"
   print zero
+  print " Threshold"
+  print thresh
 
   return one, zero, thresh
 
+#detect_threshold([1,2,3, 30, 40, 50])

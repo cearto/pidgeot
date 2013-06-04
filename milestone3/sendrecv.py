@@ -127,6 +127,7 @@ if __name__ == '__main__':
     r = Receiver(fc, opt.samplerate, opt.spb)
     demod_samples = r.demodulate(mod_samples)
     one, zero, thresh = r.detect_threshold(demod_samples)
+    #print "DEMOD", [n > thresh for n in demod_samples]
     barker_start = r.detect_preamble(demod_samples, thresh, one)
     rcdbits = r.demap_and_check(demod_samples, barker_start)
 
