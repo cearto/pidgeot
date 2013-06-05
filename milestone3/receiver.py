@@ -36,6 +36,7 @@ class Receiver:
         encoding_index = bits_to_int(decoded_header[16:])
 
         databits = rcd_bits[self.cheaderlen:]
+
         decoded_data, ec = self.hamming_decoding(databits, encoding_index)
         errorcount = errorcount + ec
         print "\tErrors corrected:\t", errorcount

@@ -69,6 +69,10 @@ class Sink:
         #binary to hex
         text = "%x" % int(text, 2)
         #hex to ascii
+        if len(text) % 2 != 0:
+            print "hex to bin error:", text
+            text = "0" + text
+
         text = binascii.unhexlify(text)
 
         return text

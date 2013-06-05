@@ -103,6 +103,9 @@ if __name__ == '__main__':
     # instantiate and run the transmitter block
     xmitter = Transmitter(fc, opt.samplerate, opt.one, opt.spb, opt.silence, opt.cc_len)
     coded_bits = xmitter.encode(databits)
+
+    print "coded_bits", coded_bits
+
     coded_bits_with_preamble = xmitter.add_preamble(coded_bits)
     samples = xmitter.bits_to_samples(coded_bits_with_preamble)
     mod_samples = xmitter.modulate(samples)
@@ -131,6 +134,9 @@ if __name__ == '__main__':
     one, zero, thresh = r.detect_threshold(demod_samples)
     barker_start = r.detect_preamble(demod_samples, thresh, one)
     rcdbits = r.demap_and_check(demod_samples, barker_start)
+
+    print "coded bits", rcdbits
+
     decoded_bits = r.decode(rcdbits)
 
     # push into sink
