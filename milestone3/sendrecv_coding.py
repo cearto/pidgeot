@@ -108,7 +108,9 @@ if __name__ == '__main__':
 
     coded_bits_with_preamble = xmitter.add_preamble(coded_bits)
     samples = xmitter.bits_to_samples(coded_bits_with_preamble)
+
     mod_samples = xmitter.modulate(samples)
+    print "mod", mod_samples
 
 ####################################    
     # create channel instance

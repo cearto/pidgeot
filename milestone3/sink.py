@@ -28,14 +28,14 @@ class Sink:
         # If its a text, just print out the text
         
         # Return the received payload for comparison purposes
-        [srctype, payload_length, padding] = self.read_type_size(recd_bits[:HEADER_GEN_LEN])
+        [srctype, payload_length, padding] = self.read_type_size(recd_bits[:HEADER_GEN_LEN + HEADER_STATS_LEN])
         if srctype != SRCTYPE_MON:
             stats = self.read_stat(recd_bits[HEADER_GEN_LEN:HEADER_GEN_LEN + HEADER_STATS_LEN])
             rcd_payload = self.huffman_decode(stats, recd_bits[HEADER_GEN_LEN + HEADER_STATS_LEN:HEADER_GEN_LEN + HEADER_STATS_LEN + payload_length], padding)
         else:
             rcd_payload = recd_bits[HEADER_GEN_LEN - PADDING_BITS:HEADER_GEN_LEN - PADDING_BITS + payload_length]
             print rcd_payload, len(rcd_payload)
-        print '\tRecd ', len(recd_bits) - HEADER_GEN_LEN, ' data bits'
+        print '\tRecd ', len(recd_bits) - HEADER_GEN_LEN - HEADER_STATS_LEN, ' data bits'
 
         if srctype == SRCTYPE_TXT:
             print '\tText recd: ', self.bits2text(rcd_payload)
@@ -120,6 +120,8 @@ class Sink:
             srctype = SRCTYPE_TXT
             srctypestr = 'text'
         else: 
+            srctype = 0xffff
+            srctypestr = 'INVALID SRCTYPE'
             print "INVALID SRCTYPE"
 
         payload_str = ''.join(map(str, header_bits[2:18]))
