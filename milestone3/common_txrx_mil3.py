@@ -48,7 +48,7 @@ def demodulate(fc, samplerate, samples):
       w = numpy.multiply(samples, carrier)
 
   finally:
-    print('Modulation took %.03f sec.' % t.interval)
+    print('Demodulation took %.03f sec.' % t.interval)
   
 
 
@@ -69,28 +69,36 @@ def lpfilter(samples_in, omega_cut):
   h = []
   dmod = []
 
-  
-  for n in range(-L, L + 1):
-    if n == 0:
-      h.append(omega_cut / m.pi)
-    else:
-      h.append( m.sin(omega_cut * n) / (m.pi / n))
-   
+  h1range = range(-L, 0)
+  h2range = range(1, L + 1)
+  h1 = [m.sin(omega_cut * n) / (m.pi / n) for n in h1range]
+  h2 = [m.sin(omega_cut * n) / (m.pi / n) for n in h2range]
+  h = h1 + [omega_cut / m.pi] + h2
 
   #Demodulating samples
   for n in range(0, len(samples_in)):
 
     sl = 0 if n - L < 0 else n - L
     su = len(samples_in) - 1 if n + L > len(samples_in) - 1 else n + L + 1
-    
-    hl = 0 if n - L >= 0 else - (n - L)
-    hu = len(h) if n + L <= len(samples_in) - 1 else len(h) + ((len(samples_in) - 1) -  (n + L + 1)) 
-    sum = 0
     s_in = samples_in[sl:su]
-    h_in = h[hl:hu]
-    for i in range(0, len(h_in)):
-      sum += s_in[i] * h_in[i]
-    dmod.append(sum)
+    
+    #hl = 0 if n - L >= 0 else - (n - L)
+    #hu = len(h) if n + L <= len(samples_in) - 1 else len(h) + ((len(samples_in) - 1) -  (n + L + 1)) 
+    #sum = 0
+    #print sl, su, n, L
+    addzerol = numpy.zeros(sl - (n - L))
+    addzerou = numpy.zeros((n + L) - su + 1)
+
+    #print addzerol, s_in, addzerou, len(addzerol), len(s_in), len(addzerou)
+    s_in = numpy.concatenate((addzerol, s_in, addzerou)).flatten()
+    dmod.append(numpy.dot(s_in, h))
+
+    #print len(s_in), len(h)
+
+    #h_in = h[hl:hu]
+    #for i in range(0, len(h_in)):
+     # sum += s_in[i] * h_in[i]
+    #dmod.append(sum)
 
   return dmod
   
