@@ -66,15 +66,22 @@ def lpfilter(samples_in, omega_cut):
   A low-pass filter of frequency omega_cut.
   '''
   # set the filter unit sample response
-  L = 50
-  h = []
-  dmod = []
 
-  h1range = range(-L, 0)
-  h2range = range(1, L + 1)
-  h1 = [m.sin(omega_cut * n) / (m.pi / n) for n in h1range]
-  h2 = [m.sin(omega_cut * n) / (m.pi / n) for n in h2range]
-  h = h1 + [omega_cut / m.pi] + h2
+  try:
+    with Timer() as t:
+      L = 50
+      h = []
+      dmod = []
+
+      h1range = range(-L, 0)
+      h2range = range(1, L + 1)
+
+      h1 = [m.sin(omega_cut * n) / (m.pi / n) for n in h1range]
+      h2 = [m.sin(omega_cut * n) / (m.pi / n) for n in h2range]
+      h = h1 + [omega_cut / m.pi] + h2
+
+  finally:
+    print('LPF--hrange took %.03f sec.' % t.interval)
 
   #Demodulating samples
   for n in range(0, len(samples_in)):
