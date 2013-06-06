@@ -1,15 +1,18 @@
 # audiocom library: Source and sink functions
-from common_srcsink import *
+import common_srcsink
 import Image
 from graphs import *
 import binascii
 import random
 import os
-import heapq # for huffman tree
 
+SRCTYPE_MON = 0
+SRCTYPE_IMG = 1
+SRCTYPE_TXT = 2
+HEADER_LEN = 34
 
 class Sink:
-    def __init__(self): 
+    def __init__(self):
         # no initialization required for sink 
         print 'Sink:'
 
@@ -28,39 +31,16 @@ class Sink:
         # If its a text, just print out the text
         
         # Return the received payload for comparison purposes
-        [srctype, payload_length, padding] = self.read_type_size(recd_bits[:HEADER_GEN_LEN + HEADER_STATS_LEN])
-        if srctype != SRCTYPE_MON:
-            stats = self.read_stat(recd_bits[HEADER_GEN_LEN:HEADER_GEN_LEN + HEADER_STATS_LEN])
-            rcd_payload = self.huffman_decode(stats, recd_bits[HEADER_GEN_LEN + HEADER_STATS_LEN:HEADER_GEN_LEN + HEADER_STATS_LEN + payload_length], padding)
-        else:
-            rcd_payload = recd_bits[HEADER_GEN_LEN - PADDING_BITS:HEADER_GEN_LEN - PADDING_BITS + payload_length]
-            print rcd_payload, len(rcd_payload)
-        print '\tRecd ', len(recd_bits) - HEADER_GEN_LEN - HEADER_STATS_LEN, ' data bits'
+        [srctype, payload_length] = self.read_header(recd_bits[:HEADER_LEN])
+        
+        rcd_payload = recd_bits[HEADER_LEN:HEADER_LEN + payload_length]
+        print '\tRecd ', len(recd_bits) - HEADER_LEN, ' data bits:'
 
         if srctype == SRCTYPE_TXT:
             print '\tText recd: ', self.bits2text(rcd_payload)
         elif srctype == SRCTYPE_IMG:
             self.image_from_bits(rcd_payload, "rcd-image.png")
         return rcd_payload
-
-    def huffman_decode(self, stats, bits, padding):
-        # print "len of undecoded bits", len(bits)
-        mapping = huffman_reverse_lookup_table(stats)
-        # print "huffman_decode lookup table", mapping
-        decoded_str = ''
-        i = 0
-        while i < len(bits):
-            key = str(bits[i])
-            i = i + 1
-            while i < len(bits) and key not in mapping:
-                key = key + str(bits[i])
-                i = i + 1
-            decoded_str = decoded_str + mapping[key]
-        decoded_str = decoded_str[:len(decoded_str) - padding]
-        # print "huffman_decode bits, len", decoded_str, len(decoded_str)
-        decoded_bits = list(decoded_str)
-        decoded_bits = [int(b) for b in decoded_bits]
-        return decoded_bits
 
     def bits2text(self, bits):
         # Convert the received payload to text (string)
@@ -69,10 +49,6 @@ class Sink:
         #binary to hex
         text = "%x" % int(text, 2)
         #hex to ascii
-        if len(text) % 2 != 0:
-            print "hex to bin error:", text
-            text = "0" + text
-
         text = binascii.unhexlify(text)
 
         return text
@@ -91,20 +67,7 @@ class Sink:
 
         pass 
 
-    def read_stat(self, ext_header):
-        stats = []
-        klist = []
-        generate_keys(klist)
-        for i in xrange(0, len(ext_header), STATSIZE):
-            freq_bits = ext_header[i:i+STATSIZE]
-            freq_str = str_from_arr(numpy.array(freq_bits))
-            freq = int(freq_str, 2)
-            if freq > 0:
-                tp = (freq, klist[i/STATSIZE])
-                stats.append(tp)
-        return stats
-
-    def read_type_size(self, header_bits): 
+    def read_header(self, header_bits): 
         # Given the header bits, compute the payload length
         # and source type (compatible with get_header on source)
         src_str = ''.join(map(str, header_bits[0:2]))
@@ -113,28 +76,20 @@ class Sink:
         if src_int == SRCTYPE_MON:
             srctype = SRCTYPE_MON
             srctypestr = 'monotone'
-        elif src_int == SRCTYPE_IMG:
+        elif src_int == 1:
             srctype = SRCTYPE_IMG
             srctypestr = 'image'
-        elif src_int == SRCTYPE_TXT:
+        elif src_int == 2:
             srctype = SRCTYPE_TXT
             srctypestr = 'text'
         else: 
-            srctype = 0xffff
-            srctypestr = 'INVALID SRCTYPE'
             print "INVALID SRCTYPE"
 
-        payload_str = ''.join(map(str, header_bits[2:18]))
+        payload_str = ''.join(map(str, header_bits[3:34]))
         payload_length = int(payload_str, 2)
 
         print '\tRecd header: ', header_bits
         print '\tSource type: ', srctypestr
         print '\tLength from header: ', payload_length
-        if src_int != SRCTYPE_MON:
-            padding_str = ''.join(map(str, header_bits[18:20]))
-            padding = int(padding_str, 2)
-            print '\tPadding: ', padding
-        else:
-            padding = 0
 
-        return srctype, payload_length, padding
+        return srctype, payload_length

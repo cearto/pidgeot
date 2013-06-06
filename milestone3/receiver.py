@@ -5,8 +5,6 @@ import scipy.cluster.vq
 import common_txrx as common
 from numpy import linalg as LA
 import receiver_mil3
-from common_txrx import *
-from hamming_db import *
 
 class Receiver:
     def __init__(self, carrier_freq, samplerate, spb):
@@ -20,67 +18,8 @@ class Receiver:
         self.fc = carrier_freq
         self.samplerate = samplerate
         self.spb = spb 
-        self.preamblebits = [1,1,1,1,1,0,1,1,1,1,0,0,1,1,1,0,1,0,1,1,0,0,0,0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0,0,1,0,1,0,1,0,0,0,0,0,0]
-        
-        self.hindex = 0
-        self.cheaderlen = 18 * 3 # 16-bit coded length + 2-bit index value
+        self.preamblebits = [1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1]
         print 'Receiver: '
-
-    def decode(self, rcd_bits):
-        headerbits = rcd_bits[:self.cheaderlen]
-        decoded_header, ec = self.hamming_decoding(headerbits, self.hindex)
-
-        errorcount = ec
-
-        coded_length = bits_to_int(decoded_header[:16])
-        encoding_index = bits_to_int(decoded_header[16:])
-
-        databits = rcd_bits[self.cheaderlen:]
-
-        decoded_data, ec = self.hamming_decoding(databits, encoding_index)
-        errorcount = errorcount + ec
-        print "\tErrors corrected:\t", errorcount
-
-        return decoded_data
-
-    def vectors_equal(self, v1, v2):
-        if len(v1) != len(v2):
-            return False
-        for i in range(len(v1)):
-            if v1[i] != v2[i]:
-                return False
-        return True
-
-    def error_index(self, k, H, p):
-        H = H.transpose()
-        z = numpy.zeros(len(p), int)
-        if self.vectors_equal(z, p):
-            return -1
-        for i in range(k):
-            if self.vectors_equal(list(H[i]), p):
-                return i
-        print "> single bit error"
-        return k # > single bit error
-
-    def hamming_decoding(self, coded_bits, index):
-        n, k, H = parity_lookup(index)
-        decoded_bits = []
-        errorcount = 0
-        for cwi in range(len(coded_bits) / n):
-            cw = coded_bits[cwi * n : cwi * n + n]
-            d = cw[:k]
-
-            p = numpy.dot(H, cw)
-            p = [b % 2 for b in list(p)]
-
-            error = self.error_index(k, H, p)
-            if error != -1 and error < k:
-                errorcount = errorcount + 1
-                d[error] = (d[error] + 1) % 2
-
-            decoded_bits = decoded_bits + d
-
-        return decoded_bits, errorcount
 
     def bits_to_samples(self, databits_with_preamble):
         '''
@@ -104,7 +43,6 @@ class Receiver:
         No need to touch this.
         ''' 
         return receiver_mil3.detect_threshold(demod_samples)
-
     def avg_middle_bits(self, bits):
         n = len(bits)
         center = n / 2
@@ -116,21 +54,26 @@ class Receiver:
         end = center + offset
         middle_bits = bits[start:end]
         avg = numpy.average(middle_bits)
+        
         return avg
 
     def detect_energy_offset(self, demod_samples, thresh, one):
         windowsize = self.spb
         energy_offset = 0
 
-        for i in range(len(demod_samples) - windowsize + 1):
+        for i in range(0, len(demod_samples) - windowsize + 1):
             window = demod_samples[i: i + windowsize]
             if self.avg_middle_bits(window) > (one + thresh)/2.0:
-                return i
+                energy_offset = i
+                break
+        return energy_offset
 
     def detect_preamble_offset(self, demod_samples, energy_offset):
         preamble_samples = self.bits_to_samples(self.preamblebits)
         preamble_length = len(self.preamblebits) * self.spb
-        endrange = min(len(demod_samples) - energy_offset - preamble_length + 1, energy_offset + 3 * preamble_length)
+
+        # min len(demod_samples) - energy_offset - preamble_length + 1
+        endrange =energy_offset + 3 * preamble_length
         cross_r = []
         
         for i in range(energy_offset, endrange):
@@ -194,7 +137,7 @@ class Receiver:
         ones = []
         zeros = []
         avgs = []
-        for i in range(npreamblebits):
+        for i in range(0, npreamblebits):
             bit = preamble_candidates[i * self.spb : i * self.spb + self.spb] # all the samples in this bit
             avg = self.avg_middle_bits(bit)
             avgs.append(avg)
@@ -210,7 +153,9 @@ class Receiver:
                 preamble_trans.append(1)
             else:
                 preamble_trans.append(0)
-                
+        if preamble_trans != self.preamblebits:
+            print "Preamble not detected."
+            sys.exit(1)
         #print preamble_trans
         #print self.preamblebits
 

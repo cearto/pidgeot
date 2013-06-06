@@ -1,10 +1,13 @@
 # audiocom library: Source and sink functions
-from common_srcsink import *
+import common_srcsink as common
 import Image
 from graphs import *
 import binascii
 import random
 
+SRCTYPE_MON = 0
+SRCTYPE_IMG = 1
+SRCTYPE_TXT = 2
 
 class Source:
 
@@ -18,81 +21,30 @@ class Source:
             # Form the databits, from the filename 
             if self.fname is not None:
                 if self.fname.endswith('.png') or self.fname.endswith('.PNG'):
-                    sourcebits = self.bits_from_image(self.fname)
-                    stats, databits, paddingbits = self.huffman_encode(sourcebits)
-                    header = self.get_header(SRCTYPE_IMG, len(databits), stats, paddingbits)
+                    payload = self.bits_from_image(self.fname)
+                    header = self.get_header(len(payload), SRCTYPE_IMG)
                     print '\tSource type:\timage'
-                    print '\tPayload length:\t', len(sourcebits)
-                    print '\tCompressed payload length:\t', len(databits)
-                    print '\tCompresion rate:\t', float(len(databits))/len(sourcebits)
-                    print '\tPadding:\t', int(''.join(map(str, paddingbits)), 2)
-                    print '\tHeader:\t', header
-                    # It's an image
+                    print '\tPayload length:\t', len(payload)
+                    print '\tHeader:\t', list(header)
+                    # Its an image
                 else:           
-                    sourcebits = self.text2bits(self.fname)
-                    stats, databits, paddingbits = self.huffman_encode(sourcebits)
-                    header = self.get_header(SRCTYPE_TXT, len(databits), stats, paddingbits)
+                    payload = self.text2bits(self.fname)
+                    header = self.get_header(len(payload), SRCTYPE_TXT)
                     print '\tSource type:\ttext'
-                    print '\tPayload length:\t', len(sourcebits)
-                    print '\tCompressed payload length:\t', len(databits)
-                    print '\tCompresion rate:\t', float(len(databits))/len(sourcebits)
-                    print '\tPadding:\t', int(''.join(map(str, paddingbits)), 2)
-                    print '\tHeader:\t', header
+                    print '\tPayload length:\t', len(payload)
+                    print '\tHeader:\t', list(header)
                     # Assume it's text                    
             else:        
-                sourcebits = numpy.ones(self.monotone, dtype=numpy.int)
-                databits = list(sourcebits)
-                header = self.get_header(SRCTYPE_MON, len(databits), None, None)
+                payload = numpy.ones(self.monotone, dtype=numpy.int)
+                header = self.get_header(len(payload), SRCTYPE_MON)
                 print '\tSource type: monotone'  
-                print '\tPayload length:\t', len(sourcebits)   
-                print '\tCompressed payload length:\t', len(databits)
-                print '\tCompresion rate:\t', float(len(databits))/len(sourcebits)
-                print '\tHeader:\t', header
+                print '\tPayload length:\t', len(payload)   
+                print '\tHeader:\t', list(header)
                 # Send monotone (the payload is all 1s for 
                 # monotone bits)
-            databits = header + databits
-            return sourcebits, databits
-            # sourcebits is the un-encoded array of bits of the file
-            # databits is the header + encoded payload
-
-    def get_stats(self, data):
-        # freq is a map of symbols to frequencies in this data
-        freq = dict()
-        for i in xrange(0, len(data), SYMBOLSIZE):
-            key = key_from_arr(data[i:i+SYMBOLSIZE])
-            if key not in freq:
-                freq[key] = 1
-            else:
-                freq[key] = freq[key] + 1
-
-        # stats is an array of [freq, symbol] tuples to allow for heapify
-        stats = []
-        for key in freq:
-            tp = (freq[key], key)
-            stats.append(tp)
-        return freq, stats
-
-    # This method takes code from: http://en.literateprograms.org/Huffman_coding_(Python)
-    # Returns map of frequencies for each symbol, as well as huffman-encoded bits
-    def huffman_encode(self, sourcebits):
-        padding = (SYMBOLSIZE - len(sourcebits) % SYMBOLSIZE) % SYMBOLSIZE
-        padding_bits = list('{0:02b}'.format(padding))
-        padding_bits = [int(b) for b in padding_bits]
-
-        # print "huffman_encode sourcebits, len", str_from_arr(sourcebits), len(sourcebits)
-        freq, stats = self.get_stats(sourcebits)
-        mapping = huffman_lookup_table(stats)
-        # print "huffman_encode lookup table", mapping
-
-        huffman_bits_str = ''
-        for i in xrange(0, len(sourcebits), SYMBOLSIZE): # build the huffman-encoded bits
-            key = key_from_arr(sourcebits[i:i+SYMBOLSIZE])
-            huffman_bits_str = huffman_bits_str + mapping[key]
-
-        huffman_bits = list(huffman_bits_str)
-        huffman_bits = [int(b) for b in huffman_bits]
-        # Return frequency map and huffman-encoded bits
-        return freq, huffman_bits, padding_bits
+            databits = numpy.concatenate([header, payload])
+            return payload, databits
+            # payload is the binary array of the file, databits is header + payload
 
     def text2bits(self, filename):
         # Given a text file, convert to bits
@@ -114,31 +66,18 @@ class Source:
         img_bits = numpy.array(map(int, list(img_str)))
         return img_bits
 
-    def get_header(self, srctype, payload_length, stats, padding_bits):
+    def get_header(self, payload_length, srctype):
         # Given the payload length and the type of source 
         # (image, text, monotone), form the header
         
+        payload_str = '{0:032b}'.format(payload_length)
+        payload_arr = list(payload_str)
+        payload_bits = numpy.array(map(int, payload_arr))
+
         srctype_str = '{0:02b}'.format(srctype)
         srctype_arr = list(srctype_str)
-        srctype_bits = [int(b) for b in list(srctype_str)]
+        srctype_bits = numpy.array(map(int, srctype_arr))
 
-        payload_str = '{0:016b}'.format(payload_length)
-        payload_arr = list(payload_str)
-        payload_bits = [int(b) for b in list(payload_str)]
-
-        if srctype == SRCTYPE_MON:
-            header = srctype_bits + payload_bits
-        else:
-            stats_bits = []
-            klist = []
-            generate_keys(klist)
-            for key in klist:
-                if key in stats:
-                    freq_str ='{0:010b}'.format(stats[key])
-                else:
-                    freq_str ='{0:010b}'.format(0)
-                freq_bits = [int(b) for b in list(freq_str)]
-                stats_bits = stats_bits + freq_bits
-            header = srctype_bits + payload_bits + padding_bits + stats_bits
+        header = numpy.concatenate([srctype_bits, payload_bits])
 
         return header
