@@ -65,41 +65,35 @@ def lpfilter(samples_in, omega_cut):
   '''
   A low-pass filter of frequency omega_cut.
   '''
-  # set the filter unit sample response
+  # Set the filter unit sample response
 
-  try:
-    with Timer() as t:
-      L = 50
-      h = []
-      dmod = []
+  L = 50
+  h = []
 
-      h1range = range(-L, 0)
-      h2range = range(1, L + 1)
+  dmod = []
 
-      h1 = [m.sin(omega_cut * n) / (m.pi / n) for n in h1range]
-      h2 = [m.sin(omega_cut * n) / (m.pi / n) for n in h2range]
-      h = h1 + [omega_cut / m.pi] + h2
+  h1range = range(-L, 0)
+  h2range = range(1, L + 1)
 
-  finally:
-    print('LPF--hrange took %.03f sec.' % t.interval)
+  h1 = [m.sin(omega_cut * n) / (m.pi / n) for n in h1range]
+  h2 = [m.sin(omega_cut * n) / (m.pi / n) for n in h2range]
+  h = h1 + [omega_cut / m.pi] + h2
 
-  #Demodulating samples
+  # Demodulating samples
   for n in range(0, len(samples_in)):
 
     sl = 0 if n - L < 0 else n - L
     su = len(samples_in) - 1 if n + L > len(samples_in) - 1 else n + L + 1
     s_in = samples_in[sl:su]
     
-    #print sl, su, n, L
     addzerol = numpy.zeros(sl - (n - L))
     addzerou = numpy.zeros((n + L) - su + 1)
 
-    #print addzerol, s_in, addzerou, len(addzerol), len(s_in), len(addzerou)
     if len(addzerol) > 0 or len(addzerou) > 0:
       s_in = numpy.concatenate((addzerol, s_in, addzerou)).flatten()
+
     dmod.append(numpy.dot(s_in, h))
 
-    #print len(s_in), len(h)
   return dmod
   
 
