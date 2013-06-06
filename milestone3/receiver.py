@@ -65,7 +65,7 @@ class Receiver:
         n, k, H = parity_lookup(index)
         decoded_bits = []
         errorcount = 0
-        print 'hamming_decoding for length', len(coded_bits), 'with', len(coded_bits) / n, 'iterations'
+        # print 'hamming_decoding for length', len(coded_bits), 'with', len(coded_bits) / n, 'iterations'
         for cwi in range(len(coded_bits) / n):
             cw = coded_bits[cwi * n : cwi * n + n]
             d = cw[:k]
@@ -85,7 +85,7 @@ class Receiver:
             elif error >= n:
                 print 'CAUTION: more than a single bit error'
 
-            print 'data', d, 'codeword', cw, 'error', error
+            # print 'data', d, 'codeword', cw, 'error', error
             decoded_bits = decoded_bits + d
 
         # print 'coded databits', coded_bits

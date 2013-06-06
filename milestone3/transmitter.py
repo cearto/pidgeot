@@ -66,7 +66,7 @@ class Transmitter:
                 c = numpy.dot(d, G)
             c = [b % 2 for b in list(c)]
             coded_bits = coded_bits + c
-            print 'data', d, 'codeword', c
+            # print 'data', d, 'codeword', c
 
         # print 'databits', databits
         # print 'coded databits', coded_bits
